@@ -17,9 +17,10 @@ import java.util.UUID;
 public class Solicitud {
     private UUID id;
     private String documentoCliente;
+    private String email;
     private BigDecimal monto;
     private Integer plazoMeses;
-    private String tipoPrestamo; // validar contra catálogo
+    private UUID tipoPrestamoId;      // <— UUID del catálogo
     private Estado estado;
-    private Instant creadaEn;
+    private Instant created;
 }

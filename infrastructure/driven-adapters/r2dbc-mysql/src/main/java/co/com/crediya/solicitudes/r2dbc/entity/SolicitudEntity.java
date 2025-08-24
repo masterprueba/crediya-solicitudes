@@ -1,18 +1,24 @@
 package co.com.crediya.solicitudes.r2dbc.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import lombok.Data;
+
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.UUID;
 
 @Table("solicitud")
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class SolicitudEntity {
-    @Id
-    private UUID id;
+    @Id @Column("id_solicitud")       private UUID id;
+    @Column("documento_cliente")       private String documentoCliente;
+    @Column("email")                   private String email;
+    @Column("monto")                   private BigDecimal monto;
+    @Column("plazo")                   private Integer plazoMeses;
+    @Column("id_estado")               private Integer idEstado;          // FK estados.id_estado
+    @Column("id_tipo_prestamo")        private UUID tipoPrestamoId;       // FK tipo_prestamo.id_tipo_prestamo
+    @Column("created")               private Instant created;
 }
