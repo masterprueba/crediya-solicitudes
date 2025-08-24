@@ -9,6 +9,7 @@ import org.springframework.context.annotation.FilterType;
         includeFilters = {
                 @ComponentScan.Filter(type = FilterType.REGEX, pattern = "^.+UseCase$")
         },
-        useDefaultFilters = false)
+        useDefaultFilters = false,
+        lazyInit = true)
 public class UseCasesConfig {
 }

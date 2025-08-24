@@ -6,6 +6,6 @@ import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 
 import java.util.UUID;
 
-public interface SolicitudRepository extends ReactiveCrudRepository<SolicitudEntity, UUID>, ReactiveQueryByExampleExecutor<SolicitudEntity> {
+public interface SolicitudR2dbcRepository extends ReactiveCrudRepository<SolicitudEntity, UUID>, ReactiveQueryByExampleExecutor<SolicitudEntity> {
 
 }

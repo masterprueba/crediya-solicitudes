@@ -32,10 +32,19 @@ cors:
 adapter:
   restconsumer:
     timeout: 5000
-    url: "http://autenticacion:8080"
+    url: "http://localhost:8080/api/v1/usuarios"
 resilience4j:
   circuitbreaker:
     instances:
+      clienteByDocumento:
+        registerHealthIndicator: true
+        failureRateThreshold: 50
+        slowCallRateThreshold: 50
+        slowCallDurationThreshold: "2s"
+        permittedNumberOfCallsInHalfOpenState: 3
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 10
+        waitDurationInOpenState: "10s"
       testGet:
         registerHealthIndicator: true
         failureRateThreshold: 50

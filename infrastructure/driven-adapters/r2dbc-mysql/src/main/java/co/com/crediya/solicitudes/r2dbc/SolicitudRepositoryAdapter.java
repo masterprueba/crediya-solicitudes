@@ -1,28 +1,31 @@
 package co.com.crediya.solicitudes.r2dbc;
 
 import co.com.crediya.solicitudes.model.solicitud.Solicitud;
+import co.com.crediya.solicitudes.model.solicitud.gateways.SolicitudRepository;
 import co.com.crediya.solicitudes.r2dbc.entity.SolicitudEntity;
 import co.com.crediya.solicitudes.r2dbc.helper.ReactiveAdapterOperations;
 import co.com.crediya.solicitudes.r2dbc.mapper.SolicitudMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivecommons.utils.ObjectMapper;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.reactive.TransactionalOperator;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
+@Repository
 @Slf4j
 public class SolicitudRepositoryAdapter extends ReactiveAdapterOperations<
         Solicitud/* change for domain model */,
         SolicitudEntity/* change for adapter model */,
         UUID,
-        SolicitudRepository
-        > {
+        SolicitudR2dbcRepository
+        > implements SolicitudRepository {
 
     private final TransactionalOperator tx;
     private final SolicitudMapper solicitudMapper;
 
-    public SolicitudRepositoryAdapter(SolicitudRepository repository, ObjectMapper mapper, TransactionalOperator transactionalOperator, SolicitudMapper solicitudMapper) {
+    public SolicitudRepositoryAdapter(SolicitudR2dbcRepository repository, ObjectMapper mapper, TransactionalOperator transactionalOperator, SolicitudMapper solicitudMapper) {
         /**
          *  Could be use mapper.mapBuilder if your domain model implement builder pattern
          *  super(repository, mapper, d -> mapper.mapBuilder(d,ObjectModel.ObjectModelBuilder.class).build());
@@ -38,7 +41,7 @@ public class SolicitudRepositoryAdapter extends ReactiveAdapterOperations<
     @Override
     public Mono<Solicitud> save(Solicitud s) {
         Mono<Solicitud> solicitudMono = Mono.just(s)
-                .map(this::toData)
+                .map(solicitudMapper::toEntity)
                 .flatMap(repository::save)
                 .map(solicitudMapper::toDomain);
         return solicitudMono.as(tx::transactional)
