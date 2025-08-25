@@ -1,4 +1,4 @@
-package co.com.crediya.solicitudes.model.solicitud.exceptions;
+package co.com.crediya.solicitudes.model.exceptions;
 
 public class DomainException extends RuntimeException {
     private final String code;

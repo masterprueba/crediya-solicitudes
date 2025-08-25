@@ -1,7 +1,7 @@
 package co.com.crediya.solicitudes.consumer;
 
 import co.com.crediya.solicitudes.model.cliente.Cliente;
-import co.com.crediya.solicitudes.model.solicitud.gateways.ClienteRepository;
+import co.com.crediya.solicitudes.model.cliente.gateways.ClienteRepository;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
