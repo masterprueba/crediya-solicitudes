@@ -3,7 +3,6 @@ package co.com.crediya.solicitudes.api.error;
 import co.com.crediya.solicitudes.model.exceptions.DomainException;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.web.WebProperties;
-import org.springframework.boot.web.reactive.error.DefaultErrorAttributes;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
