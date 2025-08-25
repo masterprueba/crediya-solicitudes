@@ -16,8 +16,9 @@ import java.util.UUID;
 @Builder(toBuilder = true)
 public class Solicitud {
     private UUID id;
-    private String documentoCliente;
     private String email;
+    private String nombres;
+    private String documento_identidad;
     private BigDecimal monto;
     private Integer plazoMeses;
     private UUID tipoPrestamoId;

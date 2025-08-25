@@ -15,7 +15,6 @@ public class SolicitudEntity {
     @Id 
     @Column("id_solicitud")       
     private String id;
-    @Column("documento_cliente")       private String documentoCliente;
     @Column("email")                   private String email;
     @Column("monto")                   private BigDecimal monto;
     @Column("plazo")                   private Integer plazoMeses;

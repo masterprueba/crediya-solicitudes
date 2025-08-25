@@ -21,17 +21,17 @@ public class CrearSolicitudUseCase {
   public Mono<Solicitud> ejecutar(Solicitud s) {
         // Paso 1: Validaciones y obtención del ID del tipo de préstamo
         Mono<Solicitud> solicitudEnriquecida = validar(s)
-                .flatMap(val -> clientePort.existeClientePorDocumento(val.getDocumentoCliente())
-                        .flatMap(existe -> existe ? Mono.just(val) : Mono.error(new DomainException("cliente_no_existe"))))
+                .flatMap(solicitudValidada -> clientePort.obtenerClientePorEmail(solicitudValidada.getEmail())
+                        .switchIfEmpty(Mono.error(new DomainException("cliente_no_existe")))
+                        .map(cliente -> solicitudValidada.toBuilder()
+                                .nombres(cliente.getUsuario())
+                                .documento_identidad(cliente.getDocumento_identidad())
+                                .build()))
                 .flatMap(val -> catalogoPort.esTipoValido(val.getTipoPrestamo())
                         .flatMap(ok -> ok ? Mono.just(val) : Mono.error(new DomainException("tipo_prestamo_invalido"))))
                 .flatMap(val -> catalogoPort.obtenerIdPorNombre(val.getTipoPrestamo())
-                        .map(tipoId -> Solicitud.builder()
+                        .map(tipoId -> val.toBuilder()
                                 .id(UUID.randomUUID())
-                                .documentoCliente(val.getDocumentoCliente())
-                                .email(val.getEmail())
-                                .monto(val.getMonto())
-                                .plazoMeses(val.getPlazoMeses())
                                 .tipoPrestamoId(tipoId)
                                 .estado(Estado.PENDIENTE_REVISION)
                                 .created(Instant.now())
@@ -43,8 +43,6 @@ public class CrearSolicitudUseCase {
     }
 
   private Mono<Solicitud> validar(Solicitud s) {
-    if (s.getDocumentoCliente()==null || s.getDocumentoCliente().isBlank())
-      return Mono.error(new DomainException("documento_requerido"));
     if (s.getMonto()==null || s.getMonto().compareTo(BigDecimal.ZERO)<=0)
       return Mono.error(new DomainException("monto_invalido"));
     if (s.getPlazoMeses()==null || s.getPlazoMeses()<=0)

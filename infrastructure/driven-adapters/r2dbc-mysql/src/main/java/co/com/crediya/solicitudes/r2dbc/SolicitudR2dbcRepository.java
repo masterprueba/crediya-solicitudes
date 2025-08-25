@@ -11,8 +11,8 @@ import reactor.core.publisher.Mono;
 public interface SolicitudR2dbcRepository extends ReactiveCrudRepository<SolicitudEntity, String>, ReactiveQueryByExampleExecutor<SolicitudEntity> {
 
     @Modifying
-    @Query("INSERT INTO solicitud (id_solicitud, documento_cliente, email, monto, plazo, id_estado, id_tipo_prestamo, created) " +
-           "VALUES (:#{#entity.id}, :#{#entity.documentoCliente}, :#{#entity.email}, :#{#entity.monto}, " +
+    @Query("INSERT INTO solicitud (id_solicitud, email, monto, plazo, id_estado, id_tipo_prestamo, created) " +
+           "VALUES (:#{#entity.id}, :#{#entity.email}, :#{#entity.monto}, " +
            ":#{#entity.plazoMeses}, :#{#entity.idEstado}, :#{#entity.tipoPrestamoId}, :#{#entity.created})")
     Mono<Integer> insert(@Param("entity") SolicitudEntity entity);
 

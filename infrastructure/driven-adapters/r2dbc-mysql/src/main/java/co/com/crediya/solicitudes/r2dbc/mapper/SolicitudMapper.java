@@ -17,7 +17,6 @@ public class SolicitudMapper {
         
         SolicitudEntity entity = new SolicitudEntity();
         entity.setId(solicitud.getId() != null ? solicitud.getId().toString() : null);
-        entity.setDocumentoCliente(solicitud.getDocumentoCliente());
         entity.setEmail(solicitud.getEmail());
         entity.setMonto(solicitud.getMonto());
         entity.setPlazoMeses(solicitud.getPlazoMeses());
@@ -35,7 +34,6 @@ public class SolicitudMapper {
         
         return Solicitud.builder()
                 .id(entity.getId() != null ? UUID.fromString(entity.getId()) : null)
-                .documentoCliente(entity.getDocumentoCliente())
                 .email(entity.getEmail())
                 .monto(entity.getMonto())
                 .plazoMeses(entity.getPlazoMeses())
