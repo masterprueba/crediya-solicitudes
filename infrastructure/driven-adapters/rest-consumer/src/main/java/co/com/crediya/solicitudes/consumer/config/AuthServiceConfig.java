@@ -2,6 +2,7 @@ package co.com.crediya.solicitudes.consumer.config;
 
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,39 +16,35 @@ import static io.netty.channel.ChannelOption.CONNECT_TIMEOUT_MILLIS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 @Configuration
-public class RestConsumerConfig {
+public class AuthServiceConfig {
 
-    private final String url;
+    private final String authServiceUrl;
+    private final int authServiceTimeout;
 
-    private final int timeout;
-
-    public RestConsumerConfig(@Value("${adapter.restconsumer.url}") String url,
-                              @Value("${adapter.restconsumer.timeout}") int timeout) {
-        this.url = url;
-        this.timeout = timeout;
+    public AuthServiceConfig(@Value("${adapter.auth-service.url}") String authServiceUrl,
+                            @Value("${adapter.auth-service.timeout}") int authServiceTimeout) {
+        this.authServiceUrl = authServiceUrl;
+        this.authServiceTimeout = authServiceTimeout;
     }
 
     @Bean
-    public WebClient getWebClient(WebClient.Builder builder) {
+    @Qualifier("authWebClient")
+    public WebClient getAuthWebClient(WebClient.Builder builder) {
         return builder
-            .baseUrl(url)
+            .baseUrl(authServiceUrl)
             .defaultHeader(HttpHeaders.CONTENT_TYPE, "application/json")
-            .clientConnector(getClientHttpConnector())
+            .clientConnector(getAuthClientHttpConnector())
             .build();
     }
 
-    private ClientHttpConnector getClientHttpConnector() {
-        /*
-        IF YO REQUIRE APPEND SSL CERTIFICATE SELF SIGNED: this should be in the default cacerts trustore
-        */
+    private ClientHttpConnector getAuthClientHttpConnector() {
         return new ReactorClientHttpConnector(HttpClient.create()
                 .compress(true)
                 .keepAlive(true)
-                .option(CONNECT_TIMEOUT_MILLIS, timeout)
+                .option(CONNECT_TIMEOUT_MILLIS, authServiceTimeout)
                 .doOnConnected(connection -> {
-                    connection.addHandlerLast(new ReadTimeoutHandler(timeout, MILLISECONDS));
-                    connection.addHandlerLast(new WriteTimeoutHandler(timeout, MILLISECONDS));
+                    connection.addHandlerLast(new ReadTimeoutHandler(authServiceTimeout, MILLISECONDS));
+                    connection.addHandlerLast(new WriteTimeoutHandler(authServiceTimeout, MILLISECONDS));
                 }));
     }
-
 }

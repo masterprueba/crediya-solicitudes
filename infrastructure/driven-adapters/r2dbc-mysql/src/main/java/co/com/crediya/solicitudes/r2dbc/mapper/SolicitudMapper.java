@@ -5,6 +5,8 @@ import co.com.crediya.solicitudes.model.solicitud.Solicitud;
 import co.com.crediya.solicitudes.r2dbc.entity.SolicitudEntity;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 @Component
 public class SolicitudMapper {
     
@@ -14,12 +16,12 @@ public class SolicitudMapper {
         }
         
         SolicitudEntity entity = new SolicitudEntity();
-        entity.setId(solicitud.getId());
+        entity.setId(solicitud.getId() != null ? solicitud.getId().toString() : null);
         entity.setDocumentoCliente(solicitud.getDocumentoCliente());
         entity.setEmail(solicitud.getEmail());
         entity.setMonto(solicitud.getMonto());
         entity.setPlazoMeses(solicitud.getPlazoMeses());
-        entity.setTipoPrestamoId(solicitud.getTipoPrestamoId());
+        entity.setTipoPrestamoId(solicitud.getTipoPrestamoId() != null ? solicitud.getTipoPrestamoId().toString() : null);
         entity.setIdEstado(estadoToInteger(solicitud.getEstado()));
         entity.setCreated(solicitud.getCreated());
         
@@ -32,12 +34,12 @@ public class SolicitudMapper {
         }
         
         return Solicitud.builder()
-                .id(entity.getId())
+                .id(entity.getId() != null ? UUID.fromString(entity.getId()) : null)
                 .documentoCliente(entity.getDocumentoCliente())
                 .email(entity.getEmail())
                 .monto(entity.getMonto())
                 .plazoMeses(entity.getPlazoMeses())
-                .tipoPrestamoId(entity.getTipoPrestamoId())
+                .tipoPrestamoId(entity.getTipoPrestamoId() != null ? UUID.fromString(entity.getTipoPrestamoId()) : null)
                 .estado(integerToEstado(entity.getIdEstado()))
                 .created(entity.getCreated())
                 .build();

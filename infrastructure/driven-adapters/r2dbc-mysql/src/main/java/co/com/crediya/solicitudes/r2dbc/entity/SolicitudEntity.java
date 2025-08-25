@@ -8,17 +8,18 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.UUID;
 
 @Table("solicitud")
 @Data
 public class SolicitudEntity {
-    @Id @Column("id_solicitud")       private UUID id;
+    @Id 
+    @Column("id_solicitud")       
+    private String id;
     @Column("documento_cliente")       private String documentoCliente;
     @Column("email")                   private String email;
     @Column("monto")                   private BigDecimal monto;
     @Column("plazo")                   private Integer plazoMeses;
     @Column("id_estado")               private Integer idEstado;          // FK estados.id_estado
-    @Column("id_tipo_prestamo")        private UUID tipoPrestamoId;       // FK tipo_prestamo.id_tipo_prestamo
+    @Column("id_tipo_prestamo")        private String tipoPrestamoId;       // FK tipo_prestamo.id_tipo_prestamo
     @Column("created")               private Instant created;
 }

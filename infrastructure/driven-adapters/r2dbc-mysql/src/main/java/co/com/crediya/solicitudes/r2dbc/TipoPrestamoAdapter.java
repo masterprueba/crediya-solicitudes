@@ -17,7 +17,7 @@ import reactor.core.publisher.Mono;
 public class TipoPrestamoAdapter extends ReactiveAdapterOperations<
         TipoPrestamo,
         TipoPrestamoEntity,
-        UUID,
+        String,
         TipoPrestamoR2dbcRepository
         > implements CatalogoPrestamoRepository {
 
@@ -26,10 +26,18 @@ public class TipoPrestamoAdapter extends ReactiveAdapterOperations<
     }
 
     @Override
-        public Mono<Boolean> esTipoValido(String tipoPrestamo) {
-            Flux<TipoPrestamoEntity> tipoPrestamoEntity = this.repository.findAll();
-            return tipoPrestamoEntity.filter(tp -> tp.getNombre().equals(tipoPrestamo))
-            .hasElements();
-        }
+    public Mono<Boolean> esTipoValido(String tipoPrestamo) {
+        Flux<TipoPrestamoEntity> tipoPrestamoEntity = this.repository.findAll();
+        return tipoPrestamoEntity.filter(tp -> tp.getNombre().equals(tipoPrestamo))
+                .hasElements();
+    }
+
+    @Override
+    public Mono<UUID> obtenerIdPorNombre(String nombre) {
+        return this.repository.findAll()
+                .filter(tp -> tp.getNombre().equals(nombre))
+                .next()
+                .map(tp -> UUID.fromString(tp.getId()));
+    }
 
 }

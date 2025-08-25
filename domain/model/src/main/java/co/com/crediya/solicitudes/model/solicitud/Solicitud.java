@@ -20,7 +20,8 @@ public class Solicitud {
     private String email;
     private BigDecimal monto;
     private Integer plazoMeses;
-    private UUID tipoPrestamoId;      // <— UUID del catálogo
+    private UUID tipoPrestamoId;
+    private String tipoPrestamo; // Campo temporal para compatibilidad
     private Estado estado;
     private Instant created;
 }
