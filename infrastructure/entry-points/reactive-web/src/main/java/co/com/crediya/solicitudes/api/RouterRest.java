@@ -12,6 +12,6 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 public class RouterRest {
     @Bean
     public RouterFunction<ServerResponse> routerFunction(CrearSolicitudHandler crearSolicitudHandler) {
-        return route(POST("/api/v1/solicitud"), crearSolicitudHandler::crear);
+        return route(POST("/solicitud"), crearSolicitudHandler::crear);
     }
 }
