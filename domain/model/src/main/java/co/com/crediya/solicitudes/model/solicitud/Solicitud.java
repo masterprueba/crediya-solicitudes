@@ -16,10 +16,13 @@ import java.util.UUID;
 @Builder(toBuilder = true)
 public class Solicitud {
     private UUID id;
-    private String documentoCliente;
+    private String email;
+    private String nombres;
+    private String documentoIdentidad;
     private BigDecimal monto;
     private Integer plazoMeses;
-    private String tipoPrestamo; // validar contra catálogo
+    private UUID tipoPrestamoId;
+    private String tipoPrestamo; // Campo temporal para compatibilidad
     private Estado estado;
-    private Instant creadaEn;
+    private Instant created;
 }

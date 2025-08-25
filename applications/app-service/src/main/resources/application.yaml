@@ -1,6 +1,11 @@
 server:
   port: 8080
+  error:
+    include-exception: true
+    include-message: always
 spring:
+  webflux:
+    base-path: /api/v1
   application:
     name: "solicitudes"
   devtools:
@@ -30,22 +35,13 @@ management:
 cors:
   allowed-origins: "http://localhost:4200,http://localhost:8080"
 adapter:
-  restconsumer:
+  auth-service:
     timeout: 5000
-    url: "http://autenticacion:8080"
+    url: "http://localhost:8081/api/v1/usuarios"
 resilience4j:
   circuitbreaker:
     instances:
-      testGet:
-        registerHealthIndicator: true
-        failureRateThreshold: 50
-        slowCallRateThreshold: 50
-        slowCallDurationThreshold: "2s"
-        permittedNumberOfCallsInHalfOpenState: 3
-        slidingWindowSize: 10
-        minimumNumberOfCalls: 10
-        waitDurationInOpenState: "10s"
-      testPost:
+      clienteByEmail:
         registerHealthIndicator: true
         failureRateThreshold: 50
         slowCallRateThreshold: 50
