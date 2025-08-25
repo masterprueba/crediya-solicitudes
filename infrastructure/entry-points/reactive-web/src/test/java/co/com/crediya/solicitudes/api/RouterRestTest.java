@@ -8,7 +8,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import co.com.crediya.solicitudes.usecase.crearsolicitud.CrearSolicitudUseCase;
 
-@ContextConfiguration(classes = {RouterRest.class, Handler.class, CrearSolicitudHandler.class})
+@ContextConfiguration(classes = {RouterRest.class, CrearSolicitudHandler.class})
 @WebFluxTest
 class RouterRestTest {
 

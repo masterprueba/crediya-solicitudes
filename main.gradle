@@ -79,6 +79,15 @@ subprojects {
             csv.setRequired false
             html.setOutputLocation layout.buildDirectory.dir("reports/jacocoHtml")
         }
+        def excludes = [
+                '**/MainApplication.class',
+                '**/*Config.class',
+                'co/com/crediya/solicitudes/**/config/**',
+                'co/com/crediya/solicitudes/api/dto/**',
+                'co/com/crediya/solicitudes/r2dbc/helper/**',
+                'co/com/crediya/solicitudes/consumer/config/**'
+        ]
+        classDirectories.setFrom(files(classDirectories.files.collect { fileTree(dir: it, exclude: excludes) }))
     }
 
 }
@@ -92,7 +101,16 @@ tasks.register('jacocoMergedReport', JacocoReport) {
     dependsOn = [test, subprojects.jacocoTestReport, pitestReportAggregate]
     additionalSourceDirs.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
     sourceDirectories.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
-    classDirectories.setFrom files(subprojects.sourceSets.main.output)
+    def excludes = [
+            '**/MainApplication.class',
+            '**/*Config.class',
+            'co/com/crediya/solicitudes/**/config/**',
+            'co/com/crediya/solicitudes/api/dto/**',
+            'co/com/crediya/solicitudes/r2dbc/helper/**',
+            'co/com/crediya/solicitudes/consumer/config/**'
+    ]
+    def mainClassesDirs = files(subprojects.collect { it.sourceSets.main.output.classesDirs }.flatten())
+    classDirectories.setFrom files(mainClassesDirs.collect { fileTree(dir: it, exclude: excludes) })
     executionData.setFrom project.fileTree(dir: '.', include: '**/build/jacoco/test.exec')
     reports {
         xml.setRequired true
