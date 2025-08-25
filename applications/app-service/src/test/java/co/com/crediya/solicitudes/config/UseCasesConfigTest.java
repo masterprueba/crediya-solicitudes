@@ -1,44 +1,29 @@
 package co.com.crediya.solicitudes.config;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+
+
+import co.com.crediya.solicitudes.model.cliente.gateways.ClienteRepository;
+import co.com.crediya.solicitudes.model.solicitud.gateways.CatalogoPrestamoRepository;
+import co.com.crediya.solicitudes.model.solicitud.gateways.SolicitudRepository;
+import org.mockito.Mockito;
+import static org.assertj.core.api.Assertions.assertThat;
+
 
 public class UseCasesConfigTest {
 
     @Test
     void testUseCaseBeansExist() {
-        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(TestConfig.class)) {
-            String[] beanNames = context.getBeanDefinitionNames();
-
-            boolean useCaseBeanFound = false;
-            for (String beanName : beanNames) {
-                if (beanName.endsWith("UseCase")) {
-                    useCaseBeanFound = true;
-                    break;
-                }
-            }
-
-            assertTrue(useCaseBeanFound, "No beans ending with 'Use Case' were found");
-        }
+        new ApplicationContextRunner()
+                .withUserConfiguration(UseCasesConfig.class)
+                .withBean(SolicitudRepository.class, () -> Mockito.mock(SolicitudRepository.class))
+                .withBean(ClienteRepository.class, () -> Mockito.mock(ClienteRepository.class))
+                .withBean(CatalogoPrestamoRepository.class, () -> Mockito.mock(CatalogoPrestamoRepository.class))
+                .run(context -> {
+                    assertThat(context).hasBean("crearSolicitudUseCase");
+                });
     }
 
-    @Configuration
-    @Import(UseCasesConfig.class)
-    static class TestConfig {
 
-        @Bean
-        public MyUseCase myUseCase() {
-            return new MyUseCase();
-        }
-    }
-
-    static class MyUseCase {
-        public String execute() {
-            return "MyUseCase Test";
-        }
-    }
 }

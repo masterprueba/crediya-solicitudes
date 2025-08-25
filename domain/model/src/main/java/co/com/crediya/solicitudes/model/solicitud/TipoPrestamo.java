@@ -1,7 +1,9 @@
-package co.com.crediya.solicitudes.consumer;
+package co.com.crediya.solicitudes.model.solicitud;
 
-import lombok.Builder;
+import java.util.UUID;
+
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,9 +13,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class ObjectRequest {
-
-    private String val1;
-    private String val2;
-
+public class TipoPrestamo {
+    private UUID id;
+    private String nombre;
 }
