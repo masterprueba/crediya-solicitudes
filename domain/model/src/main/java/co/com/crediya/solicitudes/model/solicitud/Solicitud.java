@@ -18,7 +18,7 @@ public class Solicitud {
     private UUID id;
     private String email;
     private String nombres;
-    private String documento_identidad;
+    private String documentoIdentidad;
     private BigDecimal monto;
     private Integer plazoMeses;
     private UUID tipoPrestamoId;

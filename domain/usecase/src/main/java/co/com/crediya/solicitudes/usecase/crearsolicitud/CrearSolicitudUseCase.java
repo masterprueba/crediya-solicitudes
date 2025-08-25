@@ -1,6 +1,5 @@
 package co.com.crediya.solicitudes.usecase.crearsolicitud;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -28,10 +27,10 @@ public class CrearSolicitudUseCase {
                         .switchIfEmpty(Mono.error(new DomainException("cliente_no_existe")))
                         .map(cliente -> solicitudValidada.toBuilder()
                                 .nombres(cliente.getUsuario())
-                                .documento_identidad(cliente.getDocumento_identidad())
+                                .documentoIdentidad(cliente.getDocumento_identidad())
                                 .build()))
                 .flatMap(val -> catalogoPort.esTipoValido(val.getTipoPrestamo())
-                        .flatMap(ok -> ok ? Mono.just(val) : Mono.error(new DomainException("tipo_prestamo_invalido"))))
+                        .flatMap(ok -> Boolean.TRUE.equals(ok) ? Mono.just(val) : Mono.error(new DomainException("tipo_prestamo_invalido"))))
                 .flatMap(val -> catalogoPort.obtenerIdPorNombre(val.getTipoPrestamo())
                         .map(tipoId -> val.toBuilder()
                                 .id(UUID.randomUUID())
@@ -45,13 +44,4 @@ public class CrearSolicitudUseCase {
                 .flatMap(repo::save);
     }
 
-  private Mono<Solicitud> validar(Solicitud s) {
-    if (s.getMonto()==null || s.getMonto().compareTo(BigDecimal.ZERO)<=0)
-      return Mono.error(new DomainException("monto_invalido"));
-    if (s.getPlazoMeses()==null || s.getPlazoMeses()<=0)
-      return Mono.error(new DomainException("plazo_invalido"));
-    if (s.getTipoPrestamo()==null || s.getTipoPrestamo().isBlank())
-      return Mono.error(new DomainException("tipo_requerido"));
-    return Mono.just(s);
-  }
 }

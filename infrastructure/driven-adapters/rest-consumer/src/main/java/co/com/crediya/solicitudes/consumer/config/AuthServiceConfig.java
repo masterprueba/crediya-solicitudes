@@ -2,7 +2,7 @@ package co.com.crediya.solicitudes.consumer.config;
 
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
-import org.springframework.beans.factory.annotation.Qualifier;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,9 +27,8 @@ public class AuthServiceConfig {
         this.authServiceTimeout = authServiceTimeout;
     }
 
-    @Bean
-    @Qualifier("authWebClient")
-    public WebClient getAuthWebClient(WebClient.Builder builder) {
+    @Bean("authWebClient")
+    public WebClient authWebClient(WebClient.Builder builder) {
         return builder
             .baseUrl(authServiceUrl)
             .defaultHeader(HttpHeaders.CONTENT_TYPE, "application/json")

@@ -69,7 +69,7 @@ class CrearSolicitudUseCaseTest {
                 .assertNext(sol -> {
                     // Enriquecida con datos del cliente y tipoPrestamoId asignado
                     assert sol.getNombres().equals("Juan Perez");
-                    assert sol.getDocumento_identidad().equals("123456789");
+                    assert sol.getDocumentoIdentidad().equals("123456789");
                     assert sol.getId() != null;
                     assert sol.getTipoPrestamoId() != null;
                 })

@@ -3,12 +3,10 @@ package co.com.crediya.solicitudes.consumer;
 import co.com.crediya.solicitudes.model.cliente.Cliente;
 import co.com.crediya.solicitudes.model.cliente.gateways.ClienteRepository;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
@@ -40,9 +38,7 @@ public class ClienteRestAdapter implements ClienteRepository {
     }
 
     private Mono<Cliente> obtenerClientePorEmailFallback(String email, Throwable ex) {
-        log.warn("Fallback activado para obtenerClientePorEmail. email={}, error={}", email, ex.toString());
-        // Devuelve un cliente por defecto o una señal de error, según la lógica de negocio.
-        // Aquí devolvemos empty para indicar que no se pudo obtener.
+        log.warn("Fallback activado para obtenerClientePorEmail. email={}, error={}", email, ex.getMessage());
         return Mono.empty();
     }
 }

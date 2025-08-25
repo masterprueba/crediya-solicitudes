@@ -4,7 +4,6 @@ import java.util.UUID;
 
 import org.reactivecommons.utils.ObjectMapper;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.reactive.TransactionalOperator;
 
 import co.com.crediya.solicitudes.model.solicitud.TipoPrestamo;
 import co.com.crediya.solicitudes.model.solicitud.gateways.CatalogoPrestamoRepository;
@@ -21,7 +20,7 @@ public class TipoPrestamoAdapter extends ReactiveAdapterOperations<
         TipoPrestamoR2dbcRepository
         > implements CatalogoPrestamoRepository {
 
-    public TipoPrestamoAdapter(TipoPrestamoR2dbcRepository repository, ObjectMapper mapper, TransactionalOperator transactionalOperator) {
+    public TipoPrestamoAdapter(TipoPrestamoR2dbcRepository repository, ObjectMapper mapper) {
         super(repository, mapper, d -> mapper.map(d, TipoPrestamo.class));
     }
 

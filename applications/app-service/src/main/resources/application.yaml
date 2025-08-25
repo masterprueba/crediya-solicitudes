@@ -41,7 +41,7 @@ adapter:
 resilience4j:
   circuitbreaker:
     instances:
-      clienteByDocumento:
+      clienteByEmail:
         registerHealthIndicator: true
         failureRateThreshold: 50
         slowCallRateThreshold: 50

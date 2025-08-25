@@ -5,7 +5,13 @@ import java.math.BigDecimal;
 import co.com.crediya.solicitudes.model.exceptions.DomainException;
 import reactor.core.publisher.Mono;
 
+
+
 public class SolicitudValidations {
+
+    private SolicitudValidations() {
+        throw new IllegalStateException("Validation class");
+    }
 
     public static SolicitudValidation validarMonto() {
         return solicitud -> {
