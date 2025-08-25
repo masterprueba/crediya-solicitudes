@@ -23,10 +23,11 @@ public class CrearSolicitudHandler  {
 
   public Mono<ServerResponse> crear(ServerRequest req) {
     return req.bodyToMono(CrearSolicitudRequest.class)
-      .doOnNext(dto -> log.info("crear-solicitud intento email={}", dto.email()))
+      .doOnNext(dto -> log.info("1. endpoint:{path:{}} parametro de entrada {}", req.path(), dto))
       .map(this::toDomain)
       .flatMap(useCase::ejecutar)
       .flatMap(sol -> {
+        log.info("4. crear respuesta: {}", sol);
         var location = req.uriBuilder().path("/api/v1/solicitud/{id}").build(sol.getId());
         return ServerResponse.created(location).bodyValue(sol);
       });

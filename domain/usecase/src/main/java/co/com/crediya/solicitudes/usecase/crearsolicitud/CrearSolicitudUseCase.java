@@ -4,14 +4,16 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
+import co.com.crediya.solicitudes.model.cliente.gateways.ClienteRepository;
+import co.com.crediya.solicitudes.model.exceptions.DomainException;
 import co.com.crediya.solicitudes.model.solicitud.Estado;
 import co.com.crediya.solicitudes.model.solicitud.Solicitud;
-import co.com.crediya.solicitudes.model.solicitud.exceptions.DomainException;
 import co.com.crediya.solicitudes.model.solicitud.gateways.CatalogoPrestamoRepository;
-import co.com.crediya.solicitudes.model.solicitud.gateways.ClienteRepository;
 import co.com.crediya.solicitudes.model.solicitud.gateways.SolicitudRepository;
+import co.com.crediya.solicitudes.model.solicitud.validation.SolicitudValidations;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
+
 @RequiredArgsConstructor
 public class CrearSolicitudUseCase {
     private final SolicitudRepository repo;
@@ -20,7 +22,8 @@ public class CrearSolicitudUseCase {
 
   public Mono<Solicitud> ejecutar(Solicitud s) {
         // Paso 1: Validaciones y obtención del ID del tipo de préstamo
-        Mono<Solicitud> solicitudEnriquecida = validar(s)
+        Mono<Solicitud> solicitudEnriquecida = SolicitudValidations.completa()
+                .validar(s)
                 .flatMap(solicitudValidada -> clientePort.obtenerClientePorEmail(solicitudValidada.getEmail())
                         .switchIfEmpty(Mono.error(new DomainException("cliente_no_existe")))
                         .map(cliente -> solicitudValidada.toBuilder()
@@ -39,7 +42,7 @@ public class CrearSolicitudUseCase {
         
         // Paso 2: Guardar la solicitud enriquecida
         return solicitudEnriquecida
-                .flatMap(solicitudAGuardar -> repo.save(solicitudAGuardar));
+                .flatMap(repo::save);
     }
 
   private Mono<Solicitud> validar(Solicitud s) {

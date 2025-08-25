@@ -32,6 +32,7 @@ public class ClienteRestAdapter implements ClienteRepository {
                 .uri("/cliente?email={email}", email)
                 .retrieve()
                 .bodyToMono(Cliente.class)
+                .doOnNext(cliente -> log.info("obtenerClientePorEmail respuesta: {}", cliente))
                 .onErrorResume(WebClientResponseException.NotFound.class, e -> {
                     log.warn("Cliente no encontrado (404) para el email: {}  mensaje: {}", email,e.getMessage());
                     return Mono.empty();

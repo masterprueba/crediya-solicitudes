@@ -1,4 +1,4 @@
-package co.com.crediya.solicitudes.model.solicitud.gateways;
+package co.com.crediya.solicitudes.model.cliente.gateways;
 
 import co.com.crediya.solicitudes.model.cliente.Cliente;
 import reactor.core.publisher.Mono;
