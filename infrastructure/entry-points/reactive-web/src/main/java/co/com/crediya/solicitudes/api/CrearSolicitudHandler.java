@@ -2,13 +2,17 @@ package co.com.crediya.solicitudes.api;
 
 import java.time.Instant;
 
+import co.com.crediya.solicitudes.model.cliente.ClienteToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
+import co.com.crediya.solicitudes.api.config.AuthenticationWebFilter;
 import co.com.crediya.solicitudes.api.dto.CrearSolicitudRequest;
+import co.com.crediya.solicitudes.model.auth.AuthenticatedUser;
+import co.com.crediya.solicitudes.model.exceptions.DomainException;
 import co.com.crediya.solicitudes.model.solicitud.Estado;
 import co.com.crediya.solicitudes.model.solicitud.Solicitud;
 import co.com.crediya.solicitudes.usecase.crearsolicitud.CrearSolicitudUseCase;
@@ -85,12 +89,17 @@ public class CrearSolicitudHandler  {
     return req.bodyToMono(CrearSolicitudRequest.class)
       .doOnNext(dto -> log.info("1. endpoint:{path:{}} parametro de entrada {}", req.path(), dto))
       .map(this::toDomain)
-      .flatMap(useCase::ejecutar)
+      .flatMap(user -> useCase.ejecutar(user, getClienteToken(req)))
       .flatMap(sol -> {
         log.info("4. crear respuesta: {}", sol);
         var location = req.uriBuilder().path("/api/v1/solicitud/{id}").build(sol.getId());
         return ServerResponse.created(location).bodyValue(sol);
       });
+  }
+
+  private ClienteToken getClienteToken(ServerRequest req){
+      AuthenticatedUser user = AuthenticationWebFilter.getAuthenticatedUser(req.exchange());
+        return new ClienteToken(user.getUserId(), user.getEmail(), user.getRole(), user.getToken());
   }
 
   private Solicitud toDomain(CrearSolicitudRequest r) {
