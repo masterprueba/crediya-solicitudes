@@ -13,6 +13,7 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
+import reactor.util.context.Context;
 
 @Component
 @Order(-100)
@@ -21,7 +22,7 @@ public class AuthenticationWebFilter implements WebFilter {
     private static final Logger log = LoggerFactory.getLogger(AuthenticationWebFilter.class);
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
-    private static final String USER_CONTEXT_KEY = "authenticated.user";
+    public static final String USER_CONTEXT_KEY = "authenticatedUser";
 
     private final AuthValidationRepository authValidationRepository;
 
@@ -50,8 +51,8 @@ public class AuthenticationWebFilter implements WebFilter {
         return authValidationRepository.validateToken(token)
             .flatMap(user -> {
                 log.info("Usuario autenticado: {} con rol: {}", user.getEmail(), user.getRole());
-                exchange.getAttributes().put(USER_CONTEXT_KEY, user);
-                return chain.filter(exchange);
+                return chain.filter(exchange)
+                    .contextWrite(Context.of(USER_CONTEXT_KEY, user));
             })
             .onErrorResume(DomainException.class, ex -> {
                 log.warn("Error de autenticación: {}", ex.getMessage());
@@ -88,7 +89,8 @@ public class AuthenticationWebFilter implements WebFilter {
         return exchange.getResponse().writeWith(Mono.just(buffer));
     }
 
-    public static AuthenticatedUser getAuthenticatedUser(ServerWebExchange exchange) {
-        return (AuthenticatedUser) exchange.getAttributes().get(USER_CONTEXT_KEY);
+    public static Mono<AuthenticatedUser> getAuthenticatedUser() {
+        return Mono.deferContextual(Mono::just)
+            .map(ctx -> (AuthenticatedUser) ctx.get(USER_CONTEXT_KEY));
     }
 }

@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Objects;
+
 /**
  * Representa un usuario autenticado en el contexto de solicitudes
  */
@@ -21,8 +23,20 @@ public class AuthenticatedUser {
     public boolean isCliente() {
         return "CLIENTE".equals(role);
     }
-    
-    public boolean canCreateSolicitudFor(String email) {
-        return isCliente() && this.email.equals(email);
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        AuthenticatedUser that = (AuthenticatedUser) o;
+        return Objects.equals(userId, that.userId) &&
+                Objects.equals(email, that.email) &&
+                Objects.equals(role, that.role) &&
+                Objects.equals(token, that.token);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(userId, email, role, token);
     }
 }
