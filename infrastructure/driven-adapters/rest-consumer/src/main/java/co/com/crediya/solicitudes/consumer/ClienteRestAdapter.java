@@ -1,6 +1,7 @@
 package co.com.crediya.solicitudes.consumer;
 
 import co.com.crediya.solicitudes.model.cliente.Cliente;
+import co.com.crediya.solicitudes.model.cliente.ClienteToken;
 import co.com.crediya.solicitudes.model.cliente.gateways.ClienteRepository;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.slf4j.Logger;
@@ -23,22 +24,23 @@ public class ClienteRestAdapter implements ClienteRepository {
 
     @Override
     @CircuitBreaker(name = "clienteByEmail", fallbackMethod = "obtenerClientePorEmailFallback")
-    public Mono<Cliente> obtenerClientePorEmail(String email) {
-        log.info("Consultando cliente por email. email={}", email);
+    public Mono<Cliente> obtenerClientePorEmail(ClienteToken clienteToken) {
+        log.info("Consultando cliente por email. email={}", clienteToken.getEmail());
         return authWebClient
                 .get()
-                .uri("/cliente?email={email}", email)
+                .uri("/cliente?email={email}", clienteToken.getEmail())
+                .header("Authorization", "Bearer " + clienteToken.getToken())
                 .retrieve()
                 .bodyToMono(Cliente.class)
                 .doOnNext(cliente -> log.info("obtenerClientePorEmail respuesta: {}", cliente))
                 .onErrorResume(WebClientResponseException.NotFound.class, e -> {
-                    log.warn("Cliente no encontrado (404) para el email: {}  mensaje: {}", email,e.getMessage());
+                    log.warn("Cliente no encontrado (404) para el email: {}  mensaje: {}", clienteToken.getEmail(),e.getMessage());
                     return Mono.empty();
                 });
     }
 
-    private Mono<Cliente> obtenerClientePorEmailFallback(String email, Throwable ex) {
-        log.warn("Fallback activado para obtenerClientePorEmail. email={}, error={}", email, ex.getMessage());
+    private Mono<Cliente> obtenerClientePorEmailFallback(ClienteToken clienteToken, Throwable ex) {
+        log.warn("Fallback activado para obtenerClientePorEmail. email={}, error={}", clienteToken.getEmail(), ex.getMessage());
         return Mono.empty();
     }
 }
