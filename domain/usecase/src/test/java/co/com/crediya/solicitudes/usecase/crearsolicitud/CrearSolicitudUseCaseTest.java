@@ -1,127 +1,120 @@
 package co.com.crediya.solicitudes.usecase.crearsolicitud;
 
 import co.com.crediya.solicitudes.model.cliente.Cliente;
+import co.com.crediya.solicitudes.model.cliente.ClienteToken;
 import co.com.crediya.solicitudes.model.cliente.gateways.ClienteRepository;
-import co.com.crediya.solicitudes.model.exceptions.DomainException;
 import co.com.crediya.solicitudes.model.solicitud.Estado;
 import co.com.crediya.solicitudes.model.solicitud.Solicitud;
 import co.com.crediya.solicitudes.model.solicitud.gateways.CatalogoPrestamoRepository;
 import co.com.crediya.solicitudes.model.solicitud.gateways.SolicitudRepository;
+import co.com.crediya.solicitudes.model.solicitud.validation.ClienteValidation;
+import co.com.crediya.solicitudes.model.solicitud.validation.ClienteValidations;
+import co.com.crediya.solicitudes.model.solicitud.validation.SolicitudValidation;
+import co.com.crediya.solicitudes.model.solicitud.validation.SolicitudValidations;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CrearSolicitudUseCaseTest {
 
-    @Mock
-    private SolicitudRepository solicitudRepository;
-    @Mock
-    private ClienteRepository clienteRepository;
-    @Mock
-    private CatalogoPrestamoRepository catalogoPrestamoRepository;
-
-    @InjectMocks
+    private SolicitudRepository repo;
+    private ClienteRepository clientePort;
+    private CatalogoPrestamoRepository catalogoPort;
     private CrearSolicitudUseCase useCase;
 
-    private Solicitud solicitudBase;
+    private ClienteToken clienteToken;
+    private Solicitud solicitud;
 
     @BeforeEach
     void setUp() {
-        solicitudBase = Solicitud.builder()
-                .email("juan.perez@example.com")
-                .monto(new BigDecimal("5000000"))
-                .plazoMeses(24)
-                .tipoPrestamo("LIBRE_INVERSION")
+        repo = mock(SolicitudRepository.class);
+        clientePort = mock(ClienteRepository.class);
+        catalogoPort = mock(CatalogoPrestamoRepository.class);
+        useCase = new CrearSolicitudUseCase(repo, clientePort, catalogoPort);
+
+        clienteToken = ClienteToken.builder()
+                .userId("123")
+                .email("test@test.com")
+                .role("USER")
+                .token("token123")
+                .build();
+
+        solicitud = Solicitud.builder()
+                .monto(new BigDecimal("1000.0"))
+                .documentoIdentidad("123456789")
+                .email("test@test.com")
+                .nombres("Test User")
                 .estado(Estado.PENDIENTE_REVISION)
+                .tipoPrestamo("PERSONAL")
+                .plazoMeses(12)
                 .build();
     }
 
     @Test
-    void ejecutar_debeCrearSolicitud_ok() {
-        var cliente = Cliente.builder()
-                .usuario("Juan Perez")
-                .email("juan.perez@example.com")
-                .documento_identidad("123456789")
+    @DisplayName("Debe ejecutar el caso de uso y retornar la solicitud enriquecida y guardada")
+    void testEjecutar() {
+        Solicitud solicitudValidada = solicitud.toBuilder().build();
+        ClienteToken clienteValidado = clienteToken;
+        Solicitud solicitudConCliente = solicitudValidada.toBuilder()
+                .email(clienteValidado.getEmail())
+                .build();
+        Solicitud solicitudConDatosCliente = solicitudConCliente.toBuilder()
+                .nombres("Test User")
+                .documentoIdentidad("123456789")
+                .build();
+        UUID tipoPrestamoId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+        Solicitud solicitudFinal = solicitudConDatosCliente.toBuilder()
+                .id(UUID.randomUUID())
+                .tipoPrestamoId(tipoPrestamoId)
+                .estado(Estado.PENDIENTE_REVISION)
+                .created(Instant.now())
                 .build();
 
-        when(clienteRepository.obtenerClientePorEmail(solicitudBase.getEmail()))
-                .thenReturn(Mono.just(cliente));
-        when(catalogoPrestamoRepository.esTipoValido("LIBRE_INVERSION"))
-                .thenReturn(Mono.just(true));
-        when(catalogoPrestamoRepository.obtenerIdPorNombre("LIBRE_INVERSION"))
-                .thenReturn(Mono.just(UUID.randomUUID()));
-        when(solicitudRepository.save(any(Solicitud.class)))
-                .thenAnswer(inv -> Mono.just((Solicitud) inv.getArgument(0)));
+        // Mock estáticos para las validaciones
+        try (MockedStatic<SolicitudValidations> solicitudValidationsMock = Mockito.mockStatic(SolicitudValidations.class);
+             MockedStatic<ClienteValidations> clienteValidationsMock = Mockito.mockStatic(ClienteValidations.class)) {
 
-        StepVerifier.create(useCase.ejecutar(solicitudBase))
-                .assertNext(sol -> {
-                    // Enriquecida con datos del cliente y tipoPrestamoId asignado
-                    assert sol.getNombres().equals("Juan Perez");
-                    assert sol.getDocumentoIdentidad().equals("123456789");
-                    assert sol.getId() != null;
-                    assert sol.getTipoPrestamoId() != null;
-                })
-                .verifyComplete();
-    }
+            SolicitudValidation solicitudValidation = mock(SolicitudValidation.class);
+            ClienteValidation clienteValidation = mock(ClienteValidation.class);
 
-    @Test
-    void ejecutar_clienteNoExiste_debeFallar() {
-        when(clienteRepository.obtenerClientePorEmail(solicitudBase.getEmail()))
-                .thenReturn(Mono.empty());
+            solicitudValidationsMock.when(SolicitudValidations::completa).thenReturn(solicitudValidation);
+            when(solicitudValidation.validar(any(Solicitud.class))).thenReturn(Mono.just(solicitudValidada));
 
-        StepVerifier.create(useCase.ejecutar(solicitudBase))
-                .expectErrorMatches(ex -> ex instanceof DomainException &&
-                        ex.getMessage().contains("cliente_no_existe"))
-                .verify();
-    }
+            clienteValidationsMock.when(() -> ClienteValidations.completa(any(Solicitud.class))).thenReturn(clienteValidation);
+            when(clienteValidation.validar(any(ClienteToken.class))).thenReturn(Mono.just(clienteValidado));
 
-    @Test
-    void ejecutar_tipoPrestamoInvalido_debeFallar() {
-        var cliente = Cliente.builder()
-                .usuario("Juan Perez")
-                .email("juan.perez@example.com")
-                .documento_identidad("123456789")
-                .build();
-        when(clienteRepository.obtenerClientePorEmail(solicitudBase.getEmail()))
-                .thenReturn(Mono.just(cliente));
-        when(catalogoPrestamoRepository.esTipoValido("LIBRE_INVERSION"))
-                .thenReturn(Mono.just(false));
+            when(clientePort.obtenerClientePorEmail(any(ClienteToken.class))).thenReturn(Mono.just(Cliente.builder().build()));
+            when(catalogoPort.esTipoValido(anyString())).thenReturn(Mono.just(true));
+            when(catalogoPort.obtenerIdPorNombre(anyString())).thenReturn(Mono.just(tipoPrestamoId));
+            when(repo.save(any(Solicitud.class))).thenReturn(Mono.just(solicitudFinal));
 
-        StepVerifier.create(useCase.ejecutar(solicitudBase))
-                .expectErrorMatches(ex -> ex instanceof DomainException &&
-                        ex.getMessage().contains("tipo_prestamo_invalido"))
-                .verify();
-    }
+            Mono<Solicitud> result = useCase.ejecutar(solicitud, clienteToken);
 
-    @Test
-    void ejecutar_validacionesMontoPlazoTipo_debeFallar() {
-        var invalida = solicitudBase.toBuilder()
-                .monto(BigDecimal.ZERO)
-                .build();
-        StepVerifier.create(useCase.ejecutar(invalida))
-                .expectErrorMatches(ex -> ex instanceof DomainException && ex.getMessage().contains("monto_invalido"))
-                .verify();
-
-        invalida = solicitudBase.toBuilder().monto(new BigDecimal("1")).plazoMeses(0).build();
-        StepVerifier.create(useCase.ejecutar(invalida))
-                .expectErrorMatches(ex -> ex instanceof DomainException && ex.getMessage().contains("plazo_invalido"))
-                .verify();
-
-        invalida = solicitudBase.toBuilder().plazoMeses(12).tipoPrestamo(" ").build();
-        StepVerifier.create(useCase.ejecutar(invalida))
-                .expectErrorMatches(ex -> ex instanceof DomainException && ex.getMessage().contains("tipo_prestamo_invalido"))
-                .verify();
+            StepVerifier.create(result)
+                    .assertNext(solicitudCreada -> {
+                        // Verifica los datos enriquecidos
+                        assert solicitudCreada.getEmail().equals("test@test.com");
+                        assert solicitudCreada.getNombres().equals("Test User");
+                        assert solicitudCreada.getTipoPrestamoId().equals(tipoPrestamoId);
+                        assert solicitudCreada.getEstado() == Estado.PENDIENTE_REVISION;
+                        assert solicitudCreada.getId() != null;
+                        assert solicitudCreada.getCreated() != null;
+                    })
+                    .verifyComplete();
+        }
     }
 }

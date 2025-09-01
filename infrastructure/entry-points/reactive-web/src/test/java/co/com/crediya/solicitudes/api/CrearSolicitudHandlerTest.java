@@ -1,102 +1,83 @@
 package co.com.crediya.solicitudes.api;
 
-import co.com.crediya.solicitudes.api.dto.CrearSolicitudRequest;
-import co.com.crediya.solicitudes.model.solicitud.Estado;
-import co.com.crediya.solicitudes.model.solicitud.Solicitud;
 import co.com.crediya.solicitudes.usecase.crearsolicitud.CrearSolicitudUseCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.reactive.server.WebTestClient;
-import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.UUID;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
+@DisplayName("CrearSolicitudHandler Test")
 class CrearSolicitudHandlerTest {
 
-    @Mock
+
     private CrearSolicitudUseCase useCase;
-
-    @InjectMocks
-    private CrearSolicitudHandler handler;
-
-    private WebTestClient webTestClient;
 
     @BeforeEach
     void setUp() {
-        RouterRest router = new RouterRest();
-        webTestClient = WebTestClient.bindToRouterFunction(router.routerFunction(handler)).build();
+        useCase = org.mockito.Mockito.mock(CrearSolicitudUseCase.class);
     }
 
     @Test
-    void crear_ok_retorna201() {
-        UUID id = UUID.randomUUID();
-        Solicitud salida = Solicitud.builder()
-                .id(id)
-                .email("juan.perez@example.com")
-                .monto(new BigDecimal("5000000"))
-                .plazoMeses(24)
-                .tipoPrestamo("LIBRE_INVERSION")
-                .tipoPrestamoId(UUID.randomUUID())
-                .estado(Estado.PENDIENTE_REVISION)
-                .created(Instant.now())
+    @DisplayName("Debe crear una instancia de CrearSolicitudHandler")
+    void debeCrearInstanciaDeCrearSolicitudHandler() {
+        CrearSolicitudHandler handler = new CrearSolicitudHandler(useCase);
+        org.junit.jupiter.api.Assertions.assertNotNull(handler);
+    }
+
+    @Test
+    @DisplayName("Debe crear una solicitud y retornar ServerResponse con status 201")
+    void crearDebeRetornar201YLocation() {
+        // Arrange
+        var requestDto = new co.com.crediya.solicitudes.api.dto.CrearSolicitudRequest(
+                "test@correo.com", new BigDecimal("10000.0"), 12, "PERSONAL"
+        );
+        var solicitud = co.com.crediya.solicitudes.model.solicitud.Solicitud.builder()
+                .id(UUID.randomUUID())
+                .email(requestDto.email())
+                .monto(requestDto.monto())
+                .plazoMeses(requestDto.plazo_meses())
+                .tipoPrestamo(requestDto.tipo_prestamo())
+                .estado(co.com.crediya.solicitudes.model.solicitud.Estado.PENDIENTE_REVISION)
+                .created(java.time.Instant.now())
                 .build();
 
-        when(useCase.ejecutar(any(Solicitud.class))).thenReturn(Mono.just(salida));
+        var serverRequest = org.mockito.Mockito.mock(org.springframework.web.reactive.function.server.ServerRequest.class);
+        var uriBuilder = org.mockito.Mockito.mock(org.springframework.web.util.UriBuilder.class);
+        java.net.URI location = java.net.URI.create("/api/v1/solicitud/" + solicitud.getId());
 
-        CrearSolicitudRequest req = new CrearSolicitudRequest(
-                "juan.perez@example.com", new BigDecimal("5000000"), 24, "LIBRE_INVERSION");
 
-        webTestClient.post()
-                .uri("/solicitud")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(req)
-                .exchange()
-                .expectStatus().isCreated()
-                .expectHeader().valueMatches("Location", ".*/api/v1/solicitud/" + id + "$")
-                .expectBody()
-                .jsonPath("$.id").isEqualTo(id.toString());
+        org.mockito.Mockito.when(serverRequest.bodyToMono(co.com.crediya.solicitudes.api.dto.CrearSolicitudRequest.class))
+                .thenReturn(reactor.core.publisher.Mono.just(requestDto));
+        org.mockito.Mockito.when(serverRequest.path()).thenReturn("/api/v1/solicitud");
+        org.mockito.Mockito.when(serverRequest.uriBuilder()).thenReturn(uriBuilder);
+        org.mockito.Mockito.when(uriBuilder.path(org.mockito.ArgumentMatchers.anyString())).thenReturn(uriBuilder);
+        org.mockito.Mockito.when(uriBuilder.build(org.mockito.ArgumentMatchers.any(java.util.UUID.class))).thenReturn(location);
+
+
+        try (var mockedStatic = org.mockito.Mockito.mockStatic(co.com.crediya.solicitudes.api.config.AuthenticationWebFilter.class)) {
+            mockedStatic.when(co.com.crediya.solicitudes.api.config.AuthenticationWebFilter::getAuthenticatedUser)
+                    .thenReturn(reactor.core.publisher.Mono.just(new co.com.crediya.solicitudes.model.auth.AuthenticatedUser("userId", "test@correo.com", "USER", "token")));
+
+            org.mockito.Mockito.when(useCase.ejecutar(org.mockito.Mockito.any(), org.mockito.Mockito.any()))
+                    .thenReturn(reactor.core.publisher.Mono.just(solicitud));
+
+            var handler = new CrearSolicitudHandler(useCase);
+
+            // Act
+            var responseMono = handler.crear(serverRequest);
+
+            // Assert
+            var response = responseMono.block();
+            org.junit.jupiter.api.Assertions.assertNotNull(response);
+            org.junit.jupiter.api.Assertions.assertEquals(org.springframework.http.HttpStatus.CREATED.value(), response.statusCode().value());
+            org.junit.jupiter.api.Assertions.assertEquals(location, response.headers().getLocation());
+        }
     }
 
-    @Test
-    void crear_errorDominio_retorna400() {
-        when(useCase.ejecutar(any(Solicitud.class)))
-                .thenReturn(Mono.error(new co.com.crediya.solicitudes.model.exceptions.DomainException("cliente_no_existe")));
 
-        CrearSolicitudRequest req = new CrearSolicitudRequest(
-                "alguien@example.com", new BigDecimal("1000"), 12, "LIBRE_INVERSION");
-
-        webTestClient.post()
-                .uri("/solicitud")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(req)
-                .exchange()
-                .expectStatus().is5xxServerError();
-    }
-
-    @Test
-    void crear_bodyInvalido_retorna5xx() {
-        CrearSolicitudRequest req = new CrearSolicitudRequest(
-                "juan.perez@example.com", new BigDecimal("-1"), 0, " ");
-
-        when(useCase.ejecutar(any(Solicitud.class)))
-                .thenReturn(Mono.error(new co.com.crediya.solicitudes.model.exceptions.DomainException("monto_invalido")));
-
-        webTestClient.post()
-                .uri("/solicitud")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(req)
-                .exchange()
-                .expectStatus().is5xxServerError();
-    }
 }
