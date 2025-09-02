@@ -1,4 +1,4 @@
-package co.com.crediya.solicitudes.model.solicitud.validation;
+package co.com.crediya.solicitudes.model.cliente.validation;
 
 import co.com.crediya.solicitudes.model.cliente.ClienteToken;
 import reactor.core.publisher.Mono;

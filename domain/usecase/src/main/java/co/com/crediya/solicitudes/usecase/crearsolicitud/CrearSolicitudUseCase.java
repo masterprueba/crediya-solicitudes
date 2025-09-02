@@ -10,7 +10,7 @@ import co.com.crediya.solicitudes.model.solicitud.Estado;
 import co.com.crediya.solicitudes.model.solicitud.Solicitud;
 import co.com.crediya.solicitudes.model.solicitud.gateways.CatalogoPrestamoRepository;
 import co.com.crediya.solicitudes.model.solicitud.gateways.SolicitudRepository;
-import co.com.crediya.solicitudes.model.solicitud.validation.ClienteValidations;
+import co.com.crediya.solicitudes.model.cliente.validation.ClienteValidations;
 import co.com.crediya.solicitudes.model.solicitud.validation.SolicitudValidations;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
@@ -30,7 +30,7 @@ public class CrearSolicitudUseCase {
                                 .email(cliente.getEmail())
                                 .build()))
                 .flatMap(solicitudValidada -> clientePort.obtenerClientePorEmail(clienteToken)
-                        .switchIfEmpty(Mono.error(new DomainException("cliente_no_existe")))
+                        .switchIfEmpty(Mono.error(new DomainException("cliente no existe o no esta autorizado")))
                         .map(cliente -> solicitudValidada.toBuilder()
                                 .nombres(cliente.getUsuario())
                                 .documentoIdentidad(cliente.getDocumento_identidad())
