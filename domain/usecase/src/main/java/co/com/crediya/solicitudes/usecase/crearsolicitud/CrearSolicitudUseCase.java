@@ -33,7 +33,7 @@ public class CrearSolicitudUseCase {
                         .switchIfEmpty(Mono.error(new DomainException("cliente no existe o no esta autorizado")))
                         .map(cliente -> solicitudValidada.toBuilder()
                                 .nombres(cliente.getUsuario())
-                                .documentoIdentidad(cliente.getDocumento_identidad())
+                                .documentoIdentidad(cliente.getDocumentoIdentidad())
                                 .build()))
                 .flatMap(val -> catalogoPort.esTipoValido(val.getTipoPrestamo())
                         .flatMap(ok -> Boolean.TRUE.equals(ok) ? Mono.just(val) : Mono.error(new DomainException("tipo_prestamo_invalido"))))

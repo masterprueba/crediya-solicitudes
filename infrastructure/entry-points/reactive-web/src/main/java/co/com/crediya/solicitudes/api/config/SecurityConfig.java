@@ -5,6 +5,7 @@ import co.com.crediya.solicitudes.model.auth.gateways.AuthValidationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
@@ -46,8 +47,9 @@ public class SecurityConfig {
                         .pathMatchers("/v3/api-docs/**").permitAll()
                         .pathMatchers("/swagger-ui.html").permitAll()
                         .pathMatchers("/swagger-ui/**").permitAll()
-                        .pathMatchers("/solicitudes/**").hasRole("CLIENTE")
-                        .anyExchange().authenticated()
+                        .pathMatchers(HttpMethod.GET,"/solicitud/listar").hasRole("ASESOR")
+                        .pathMatchers(HttpMethod.POST,"/solicitud").hasRole("CLIENTE")
+                        .anyExchange().denyAll()
                 )
                 .exceptionHandling(ex -> ex.accessDeniedHandler(customAccessDeniedHandler()))
                 .addFilterAt(jwtWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)

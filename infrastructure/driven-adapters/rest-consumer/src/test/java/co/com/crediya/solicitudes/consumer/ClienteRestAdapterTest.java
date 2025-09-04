@@ -10,6 +10,8 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -42,12 +44,18 @@ class ClienteRestAdapterTest {
 
     @Test
     void obtenerClientePorEmail_deberiaRetornarClienteCuandoExiste() {
-        // Asumiendo que el constructor de ClienteToken es (id, email, rol, token)
         ClienteToken token = new ClienteToken("id123", "correo@dominio.com", "ROL_USUARIO", "token123");
-        Cliente cliente = new Cliente();
-        cliente.setEmail("correo@dominio.com");
 
-        when(mockResponseSpec.bodyToMono(Cliente.class)).thenReturn(Mono.just(cliente));
+        // Crea un mapa que simula la respuesta JSON
+        Map<String, Object> responseMap = Map.of(
+                "usuario", "John carlos",
+                "email", "correo@dominio.com",
+                "documento_identidad", "12345",
+                "salario_base", new BigDecimal("50000")
+        );
+
+        // Configura el mock para que responda a bodyToMono(Map.class)
+        when(mockResponseSpec.bodyToMono(Map.class)).thenReturn(Mono.just(responseMap));
 
         StepVerifier.create(adapter.obtenerClientePorEmail(token))
                 .expectNextMatches(c -> c.getEmail().equals("correo@dominio.com"))
@@ -60,7 +68,8 @@ class ClienteRestAdapterTest {
         WebClientResponseException.NotFound notFound = (WebClientResponseException.NotFound) WebClientResponseException.create(
                 404, "Not Found", null, null, null);
 
-        when(mockResponseSpec.bodyToMono(Cliente.class)).thenReturn(Mono.error(notFound));
+        // Ajusta el mock para que use Map.class
+        when(mockResponseSpec.bodyToMono(Map.class)).thenReturn(Mono.error(notFound));
 
         StepVerifier.create(adapter.obtenerClientePorEmail(token))
                 .verifyComplete();

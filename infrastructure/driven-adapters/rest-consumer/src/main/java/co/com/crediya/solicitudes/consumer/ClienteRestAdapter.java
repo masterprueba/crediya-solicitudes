@@ -12,6 +12,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
+import java.util.Map;
+
 @Service
 public class ClienteRestAdapter implements ClienteRepository {
     private final WebClient authWebClient;
@@ -31,7 +34,13 @@ public class ClienteRestAdapter implements ClienteRepository {
                 .uri("/cliente?email={email}", clienteToken.getEmail())
                 .header("Authorization", "Bearer " + clienteToken.getToken())
                 .retrieve()
-                .bodyToMono(Cliente.class)
+                .bodyToMono(Map.class)
+                .map(data -> new Cliente(
+                        (String) data.get("usuario"),
+                        (String) data.get("email"),
+                        (String) data.get("documento_identidad"),
+                        BigDecimal.valueOf(((Number) data.get("salario_base")).doubleValue())
+                ))
                 .doOnNext(cliente -> log.info("obtenerClientePorEmail respuesta: {}", cliente))
                 .onErrorResume(WebClientResponseException.NotFound.class, e -> {
                     log.warn("Cliente no encontrado (404) para el email: {}  mensaje: {}", clienteToken.getEmail(),e.getMessage());

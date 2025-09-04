@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
+
+import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
 import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
@@ -22,8 +24,16 @@ public class RouterRest {
                     beanClass = CrearSolicitudHandler.class,
                     beanMethod = "crear"
             ),
+            @RouterOperation(
+                    path = "/solicitud/listar",
+                    method = RequestMethod.GET,
+                    beanClass = ListarSolicitudesHandler.class,
+                    beanMethod = "listarSolicitudes"
+            ),
     })
-    public RouterFunction<ServerResponse> routerFunction(CrearSolicitudHandler crearSolicitudHandler) {
-        return route(POST("/solicitud"), crearSolicitudHandler::crear);
+    public RouterFunction<ServerResponse> routerFunction(CrearSolicitudHandler crearSolicitudHandler,
+                                                       ListarSolicitudesHandler listarSolicitudHandler) {
+        return route(POST("/solicitud"), crearSolicitudHandler::crear)
+                .andRoute(GET("/solicitud/listar"), listarSolicitudHandler::listarSolicitudes);
     }
 }

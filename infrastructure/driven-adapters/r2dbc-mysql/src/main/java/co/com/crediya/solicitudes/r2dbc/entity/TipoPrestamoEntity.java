@@ -12,5 +12,5 @@ public class TipoPrestamoEntity {
     @Id
     @Column("id_tipo_prestamo") private String id;
     @Column("nombre")               private String nombre;
-    // getters/setters
+    @Column("tasa_interes")         private Double tasaInteres;
 }
