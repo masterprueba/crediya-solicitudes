@@ -12,7 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -21,7 +21,6 @@ import reactor.core.publisher.Mono;
 
 import static java.lang.Integer.parseInt;
 
-@Slf4j
 @Component
 @RequiredArgsConstructor
 @Schema(
@@ -31,6 +30,8 @@ import static java.lang.Integer.parseInt;
 public class ListarSolicitudesHandler {
 
     private final ListarSolicitudesUseCase listarSolicitudesUseCase;
+
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(ListarSolicitudesHandler.class);
 
     @Operation(
             summary = "Listar solicitudes de crédito",
@@ -65,11 +66,12 @@ public class ListarSolicitudesHandler {
     })
     public Mono<ServerResponse> listarSolicitudes(ServerRequest req) {
 
+        log.info("Inicio - Listar solicitudes");
         int page = parseInt(req.queryParam("page").orElse("0"), 10);
         int size = parseInt(req.queryParam("size").orElse("20"), 10);
         String tipo = req.queryParam("tipo").orElse(null);
 
-        log.info("Listar solicitudes - page: {}, size: {}", page, size);
+        log.info("Listar solicitudes - page: {}, size: {}, tipo {}", page, size, tipo);
 
         return req.principal()
                 .map(principal -> (AuthenticatedUser) ((Authentication) principal).getPrincipal())
@@ -83,6 +85,7 @@ public class ListarSolicitudesHandler {
                 .map(solicitudes -> new SolicitudResumenResponse(solicitudes.contenido().stream().map(this::toItem).toList(),
                         solicitudes.page(), solicitudes.size(), solicitudes.totalElements(), solicitudes.totalPages(), solicitudes.hasNext()))
                 .flatMap(response -> ServerResponse.ok().bodyValue(response))
+                .doOnSuccess(v -> log.info("Fin - Listar solicitudes"))
                 .doOnError(e -> log.error("Error al listar solicitudes {}", e.getMessage()));
 
     }

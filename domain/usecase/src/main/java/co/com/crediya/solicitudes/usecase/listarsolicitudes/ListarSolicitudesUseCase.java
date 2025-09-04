@@ -27,6 +27,8 @@ public class ListarSolicitudesUseCase {
 
     public Mono<Pagina<SolicitudResumen>> listarSolicitudes(int page, int size, String filtroTipo, ClienteToken clienteToken) {
 
+        log.info("Iniciando listado de solicitudes - página: {}, tamaño: {}, filtroTipo: {}, clienteEmail: {}",
+                page, size, filtroTipo, clienteToken.getEmail());
         var estados = Set.of(Estado.PENDIENTE_REVISION, Estado.RECHAZADA, Estado.REVISION_MANUAL);
 
         var solicitudesBase = solicitudResumenRepository.listarBase(estados, page, size, filtroTipo)

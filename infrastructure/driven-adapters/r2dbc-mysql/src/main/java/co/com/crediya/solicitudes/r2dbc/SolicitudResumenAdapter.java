@@ -54,7 +54,6 @@ public class SolicitudResumenAdapter implements SolicitudResumenRepository {
                 "  ) dm ON dm.email = s.email "+
                 "WHERE es.nombre IN " + estadosIn + " ");
 
-        log.debug("Consulta SQL base: {}", query);
 
         if (filtroTipo != null && !filtroTipo.isEmpty()) {
             query.append(" AND tp.nombre = ?");
@@ -66,13 +65,10 @@ public class SolicitudResumenAdapter implements SolicitudResumenRepository {
         var data = db.sql(query.toString());
         int paramIndex = 0;
         if (filtroTipo != null && !filtroTipo.isEmpty()) {
-            log.info("1 paramindex {}", paramIndex);
             data = data.bind(paramIndex++, filtroTipo);
 
         }
-        log.info("2 paramindex {}", paramIndex);
         data = data.bind(paramIndex++, size);
-        log.info("3 paramindex {}", paramIndex);
         data = data.bind(paramIndex, (page-1) * size);
 
         return data.map((row, meta) -> new SolicitudResumen(
