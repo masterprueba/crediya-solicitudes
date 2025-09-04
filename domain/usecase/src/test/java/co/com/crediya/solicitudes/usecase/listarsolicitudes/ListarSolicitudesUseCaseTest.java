@@ -19,7 +19,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 
 class ListarSolicitudesUseCaseTest {
 
@@ -48,11 +47,11 @@ class ListarSolicitudesUseCaseTest {
                 .documentoIdentidad("123")
                 .build();
 
-        Mockito.when(solicitudResumenRepository.listarBase(eq(estados), eq(0), eq(10), eq("PERSONAL")))
+        Mockito.when(solicitudResumenRepository.listarBase(estados, 0, 10, "PERSONAL"))
                 .thenReturn(Flux.just(base));
         Mockito.when(clienteRepository.obtenerClientePorEmail(any(ClienteToken.class)))
                 .thenReturn(Mono.just(cliente));
-        Mockito.when(solicitudResumenRepository.contar(eq(estados), eq("PERSONAL")))
+        Mockito.when(solicitudResumenRepository.contar(estados, "PERSONAL"))
                 .thenReturn(Mono.just(1L));
 
         var clienteToken = ClienteToken.builder().email("email@test.com").token("token").build();

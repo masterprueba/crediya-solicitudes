@@ -1,7 +1,5 @@
 package co.com.crediya.solicitudes.api.dto;
 
-import co.com.crediya.solicitudes.model.solicitud.Estado;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;

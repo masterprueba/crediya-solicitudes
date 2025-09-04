@@ -5,7 +5,6 @@ import co.com.crediya.solicitudes.model.solicitud.SolicitudResumen;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.math.BigDecimal;
 import java.util.Set;
 
 public interface SolicitudResumenRepository {

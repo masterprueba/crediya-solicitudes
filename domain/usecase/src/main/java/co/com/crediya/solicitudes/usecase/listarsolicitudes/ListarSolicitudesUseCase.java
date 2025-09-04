@@ -23,7 +23,7 @@ public class ListarSolicitudesUseCase {
     private final SolicitudResumenRepository solicitudResumenRepository;
     private final ClienteRepository clienteRepository;
 
-    private final static Logger log = Loggers.getLogger(ListarSolicitudesUseCase.class);
+    private  static final Logger log = Loggers.getLogger(ListarSolicitudesUseCase.class);
 
     public Mono<Pagina<SolicitudResumen>> listarSolicitudes(int page, int size, String filtroTipo, ClienteToken clienteToken) {
 

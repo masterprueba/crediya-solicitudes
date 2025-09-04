@@ -4,7 +4,6 @@ import co.com.crediya.solicitudes.model.solicitud.Estado;
 import co.com.crediya.solicitudes.model.solicitud.SolicitudResumen;
 import co.com.crediya.solicitudes.model.solicitud.gateways.SolicitudResumenRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.r2dbc.core.DatabaseClient;
@@ -33,7 +32,7 @@ public class SolicitudResumenAdapter implements SolicitudResumenRepository {
 
         String estadosIn = "('RECHAZADA','PENDIENTE_REVISION','REVISION_MANUAL')";
 
-        if (estados != null || !estados.isEmpty()) {
+        if (estados != null ) {
             estadosIn =  "("+estados.stream().map(estado -> "'" + estado.name() + "'").reduce((a, b) -> a + "," + b).orElse("")+")";
         }
 
@@ -55,14 +54,14 @@ public class SolicitudResumenAdapter implements SolicitudResumenRepository {
                 "  ) dm ON dm.email = s.email "+
                 "WHERE es.nombre IN " + estadosIn + " ");
 
-        log.debug("Consulta SQL base: {}", query.toString());
+        log.debug("Consulta SQL base: {}", query);
 
         if (filtroTipo != null && !filtroTipo.isEmpty()) {
             query.append(" AND tp.nombre = ?");
         }
         query.append(" LIMIT ? OFFSET ? ");
 
-        log.info("Consulta SQL final con filtros: {}", query.toString());
+        log.info("Consulta SQL final con filtros: {}", query);
 
         var data = db.sql(query.toString());
         int paramIndex = 0;
