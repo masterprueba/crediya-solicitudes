@@ -49,8 +49,8 @@ class ListarSolicitudesUseCaseTest {
 
         Mockito.when(solicitudResumenRepository.listarBase(estados, 0, 10, "PERSONAL"))
                 .thenReturn(Flux.just(base));
-        Mockito.when(clienteRepository.obtenerClientePorEmail(any(ClienteToken.class)))
-                .thenReturn(Mono.just(cliente));
+        Mockito.when(clienteRepository.obtenerClientes(any(ClienteToken.class)))
+                .thenReturn(Flux.just(cliente));
         Mockito.when(solicitudResumenRepository.contar(estados, "PERSONAL"))
                 .thenReturn(Mono.just(1L));
 

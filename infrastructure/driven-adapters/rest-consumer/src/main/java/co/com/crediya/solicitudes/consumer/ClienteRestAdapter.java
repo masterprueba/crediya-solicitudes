@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
@@ -48,9 +49,37 @@ public class ClienteRestAdapter implements ClienteRepository {
                 });
     }
 
+    @Override
+    @CircuitBreaker(name = "clientes", fallbackMethod = "obtenerClientesFallback")
+    public Flux<Cliente> obtenerClientes(ClienteToken clienteToken) {
+        log.info("Consultando cliente por email. email={}", clienteToken.getToken());
+        return authWebClient
+                .get()
+                .uri("/rol/4")
+                .header("Authorization", "Bearer " + clienteToken.getToken())
+                .retrieve()
+                .bodyToFlux(Map.class)
+                .map(data -> new Cliente(
+                        (String) data.get("usuario"),
+                        (String) data.get("email"),
+                        (String) data.get("documento_identidad"),
+                        BigDecimal.valueOf(((Number) data.get("salario_base")).doubleValue())
+                ))
+                .doOnNext(cliente -> log.info("obtenerClientes respuesta: {}", cliente))
+                .onErrorResume(WebClientResponseException.NotFound.class, e -> {
+                    log.warn("Clientes no encontrados (404)  mensaje: {}",e.getMessage());
+                    return Flux.empty();
+                });
+    }
+
     private Mono<Cliente> obtenerClientePorEmailFallback(ClienteToken clienteToken, Throwable ex) {
         log.warn("Fallback activado para obtenerClientePorEmail. email={}, error={}", clienteToken.getEmail(), ex.getMessage());
         return Mono.empty();
+    }
+
+    private Flux<Cliente> obtenerClientesFallback(Throwable ex) {
+        log.warn("Fallback activado para obtenerClientes error={}", ex.getMessage());
+        return Flux.empty();
     }
 }
 
