@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Data
 @Builder(toBuilder = true)
 @NoArgsConstructor
@@ -12,5 +14,6 @@ import lombok.NoArgsConstructor;
 public class Cliente {
     private String usuario;
     private String email;
-    private String documento_identidad;
+    private String documentoIdentidad;
+    private BigDecimal salarioBase;
 }
