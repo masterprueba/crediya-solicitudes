@@ -1,13 +1,21 @@
 package co.com.crediya.solicitudes.api;
 
+import co.com.crediya.solicitudes.model.auth.AuthenticatedUser;
+import co.com.crediya.solicitudes.model.cliente.ClienteToken;
 import co.com.crediya.solicitudes.usecase.crearsolicitud.CrearSolicitudUseCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.reactive.function.server.ServerRequest;
+import org.springframework.web.reactive.function.server.ServerResponse;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.math.BigDecimal;
+import java.security.Principal;
 import java.util.UUID;
 
 @ExtendWith(MockitoExtension.class)
@@ -16,16 +24,17 @@ class CrearSolicitudHandlerTest {
 
 
     private CrearSolicitudUseCase useCase;
+    private CrearSolicitudHandler handler;
 
     @BeforeEach
     void setUp() {
         useCase = org.mockito.Mockito.mock(CrearSolicitudUseCase.class);
+        handler = new CrearSolicitudHandler(useCase);
     }
 
     @Test
     @DisplayName("Debe crear una instancia de CrearSolicitudHandler")
     void debeCrearInstanciaDeCrearSolicitudHandler() {
-        CrearSolicitudHandler handler = new CrearSolicitudHandler(useCase);
         org.junit.jupiter.api.Assertions.assertNotNull(handler);
     }
 
@@ -46,38 +55,40 @@ class CrearSolicitudHandlerTest {
                 .created(java.time.Instant.now())
                 .build();
 
-        var serverRequest = org.mockito.Mockito.mock(org.springframework.web.reactive.function.server.ServerRequest.class);
+        var serverRequest = org.mockito.Mockito.mock(ServerRequest.class);
         var uriBuilder = org.mockito.Mockito.mock(org.springframework.web.util.UriBuilder.class);
         java.net.URI location = java.net.URI.create("/api/v1/solicitud/" + solicitud.getId());
 
+        // Mock del principal
+        var authenticatedUser = new AuthenticatedUser("userId", "test@correo.com", "USER", "token");
+        var authentication = org.mockito.Mockito.mock(Authentication.class);
+        Mono<Principal> principalMono = Mono.just(authentication);
 
+        org.mockito.Mockito.when(authentication.getPrincipal()).thenReturn(authenticatedUser);
+        // Cambia thenReturn por thenAnswer para evitar problemas con genéricos
+        org.mockito.Mockito.when(serverRequest.principal()).thenAnswer(invocation -> principalMono);
+
+        // Mocks de la solicitud
         org.mockito.Mockito.when(serverRequest.bodyToMono(co.com.crediya.solicitudes.api.dto.CrearSolicitudRequest.class))
-                .thenReturn(reactor.core.publisher.Mono.just(requestDto));
+                .thenReturn(Mono.just(requestDto));
         org.mockito.Mockito.when(serverRequest.path()).thenReturn("/api/v1/solicitud");
         org.mockito.Mockito.when(serverRequest.uriBuilder()).thenReturn(uriBuilder);
         org.mockito.Mockito.when(uriBuilder.path(org.mockito.ArgumentMatchers.anyString())).thenReturn(uriBuilder);
-        org.mockito.Mockito.when(uriBuilder.build(org.mockito.ArgumentMatchers.any(java.util.UUID.class))).thenReturn(location);
+        org.mockito.Mockito.when(uriBuilder.build(solicitud.getId())).thenReturn(location);
 
+        // Mock del caso de uso
+        org.mockito.Mockito.when(useCase.ejecutar(org.mockito.ArgumentMatchers.any(co.com.crediya.solicitudes.model.solicitud.Solicitud.class), org.mockito.ArgumentMatchers.any(ClienteToken.class)))
+                .thenReturn(Mono.just(solicitud));
 
-        try (var mockedStatic = org.mockito.Mockito.mockStatic(co.com.crediya.solicitudes.api.config.AuthenticationWebFilter.class)) {
-            mockedStatic.when(co.com.crediya.solicitudes.api.config.AuthenticationWebFilter::getAuthenticatedUser)
-                    .thenReturn(reactor.core.publisher.Mono.just(new co.com.crediya.solicitudes.model.auth.AuthenticatedUser("userId", "test@correo.com", "USER", "token")));
+        // Act
+        Mono<ServerResponse> responseMono = handler.crear(serverRequest);
 
-            org.mockito.Mockito.when(useCase.ejecutar(org.mockito.Mockito.any(), org.mockito.Mockito.any()))
-                    .thenReturn(reactor.core.publisher.Mono.just(solicitud));
-
-            var handler = new CrearSolicitudHandler(useCase);
-
-            // Act
-            var responseMono = handler.crear(serverRequest);
-
-            // Assert
-            var response = responseMono.block();
-            org.junit.jupiter.api.Assertions.assertNotNull(response);
-            org.junit.jupiter.api.Assertions.assertEquals(org.springframework.http.HttpStatus.CREATED.value(), response.statusCode().value());
-            org.junit.jupiter.api.Assertions.assertEquals(location, response.headers().getLocation());
-        }
+        // Assert
+        StepVerifier.create(responseMono)
+                .assertNext(response -> {
+                    org.junit.jupiter.api.Assertions.assertEquals(org.springframework.http.HttpStatus.CREATED, response.statusCode());
+                    org.junit.jupiter.api.Assertions.assertEquals(location, response.headers().getLocation());
+                })
+                .verifyComplete();
     }
-
-
 }
