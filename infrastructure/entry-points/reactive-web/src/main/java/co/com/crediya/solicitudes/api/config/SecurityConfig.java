@@ -1,6 +1,5 @@
 package co.com.crediya.solicitudes.api.config;
 
-import co.com.crediya.solicitudes.model.auth.AuthenticatedUser;
 import co.com.crediya.solicitudes.model.auth.gateways.AuthValidationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -96,15 +95,4 @@ public class SecurityConfig {
         };
     }
 
-    public static Mono<AuthenticatedUser> getAuthenticatedUser() {
-        return Mono.deferContextual(Mono::just)
-            .flatMap(context -> {
-                var authentication = context.get(org.springframework.security.core.Authentication.class);
-                if (authentication.getPrincipal() instanceof AuthenticatedUser authenticatedUser) {
-
-                    return Mono.just(authenticatedUser);
-                }
-                return Mono.empty();
-            });
-    }
 }

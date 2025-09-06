@@ -1,8 +1,8 @@
 package co.com.crediya.solicitudes.api;
 
 import co.com.crediya.solicitudes.api.dto.SolicitudResumenResponse;
+import co.com.crediya.solicitudes.api.context.ReactiveAuthenticationContextProvider;
 import co.com.crediya.solicitudes.model.auth.AuthenticatedUser;
-import co.com.crediya.solicitudes.model.cliente.ClienteToken;
 import co.com.crediya.solicitudes.model.solicitud.SolicitudResumen;
 import co.com.crediya.solicitudes.usecase.listarsolicitudes.ListarSolicitudesUseCase;
 import io.swagger.v3.oas.annotations.Operation;
@@ -75,13 +75,10 @@ public class ListarSolicitudesHandler {
 
         return req.principal()
                 .map(principal -> (AuthenticatedUser) ((Authentication) principal).getPrincipal())
-                .flatMap(user -> {
-                    ClienteToken clienteToken = ClienteToken.builder()
-                            .email(user.getEmail())
-                            .token(user.getToken())
-                            .build();
-                    return listarSolicitudesUseCase.listarSolicitudes(page, size, tipo, clienteToken);
-                })
+                .flatMap(user ->
+                     listarSolicitudesUseCase.listarSolicitudes(page, size, tipo)
+                            .contextWrite(ReactiveAuthenticationContextProvider.withAuthentication(user))
+                )
                 .map(solicitudes -> new SolicitudResumenResponse(solicitudes.contenido().stream().map(this::toItem).toList(),
                         solicitudes.page(), solicitudes.size(), solicitudes.totalElements(), solicitudes.totalPages(), solicitudes.hasNext()))
                 .flatMap(response -> ServerResponse.ok().bodyValue(response))

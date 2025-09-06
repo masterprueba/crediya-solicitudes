@@ -1,7 +1,6 @@
 package co.com.crediya.solicitudes.usecase.crearsolicitud;
 
 import co.com.crediya.solicitudes.model.cliente.Cliente;
-import co.com.crediya.solicitudes.model.cliente.ClienteToken;
 import co.com.crediya.solicitudes.model.cliente.gateways.ClienteRepository;
 import co.com.crediya.solicitudes.model.solicitud.Estado;
 import co.com.crediya.solicitudes.model.solicitud.Solicitud;
@@ -36,7 +35,6 @@ class CrearSolicitudUseCaseTest {
     private CatalogoPrestamoRepository catalogoPort;
     private CrearSolicitudUseCase useCase;
 
-    private ClienteToken clienteToken;
     private Solicitud solicitud;
 
     @BeforeEach
@@ -45,13 +43,6 @@ class CrearSolicitudUseCaseTest {
         clientePort = mock(ClienteRepository.class);
         catalogoPort = mock(CatalogoPrestamoRepository.class);
         useCase = new CrearSolicitudUseCase(repo, clientePort, catalogoPort);
-
-        clienteToken = ClienteToken.builder()
-                .userId("123")
-                .email("test@test.com")
-                .role("USER")
-                .token("token123")
-                .build();
 
         solicitud = Solicitud.builder()
                 .monto(new BigDecimal("1000.0"))
@@ -68,9 +59,9 @@ class CrearSolicitudUseCaseTest {
     @DisplayName("Debe ejecutar el caso de uso y retornar la solicitud enriquecida y guardada")
     void testEjecutar() {
         Solicitud solicitudValidada = solicitud.toBuilder().build();
-        ClienteToken clienteValidado = clienteToken;
+
         Solicitud solicitudConCliente = solicitudValidada.toBuilder()
-                .email(clienteValidado.getEmail())
+                .email("test@test.com")
                 .build();
         Solicitud solicitudConDatosCliente = solicitudConCliente.toBuilder()
                 .nombres("Test User")
@@ -95,14 +86,14 @@ class CrearSolicitudUseCaseTest {
             when(solicitudValidation.validar(any(Solicitud.class))).thenReturn(Mono.just(solicitudValidada));
 
             clienteValidationsMock.when(() -> ClienteValidations.completa(any(Solicitud.class))).thenReturn(clienteValidation);
-            when(clienteValidation.validar(any(ClienteToken.class))).thenReturn(Mono.just(clienteValidado));
+            when(clienteValidation.validar(any(String.class))).thenReturn(Mono.just("test@test.com"));
 
-            when(clientePort.obtenerClientePorEmail(any(ClienteToken.class))).thenReturn(Mono.just(Cliente.builder().build()));
+            when(clientePort.obtenerClientePorEmail(any(String.class))).thenReturn(Mono.just(Cliente.builder().build()));
             when(catalogoPort.esTipoValido(anyString())).thenReturn(Mono.just(true));
             when(catalogoPort.obtenerIdPorNombre(anyString())).thenReturn(Mono.just(tipoPrestamoId));
             when(repo.save(any(Solicitud.class))).thenReturn(Mono.just(solicitudFinal));
 
-            Mono<Solicitud> result = useCase.ejecutar(solicitud, clienteToken);
+            Mono<Solicitud> result = useCase.ejecutar(solicitud, "test@test.com");
 
             StepVerifier.create(result)
                     .assertNext(solicitudCreada -> {
