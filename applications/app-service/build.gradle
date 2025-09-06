@@ -27,3 +27,10 @@ bootJar {
     // Sets output jar name
     archiveFileName = "${project.getParent().getName()}.${archiveExtension.get()}"
 }
+
+test {
+    environment "SPRING_R2DBC_URL", "r2dbc:pool:mysql://mysql-solicitudes:3306/db-solicitudes"
+    environment "SPRING_R2DBC_USERNAME", "root"
+    environment "SPRING_R2DBC_PASSWORD", "root"
+    environment "SERVICE_AUTH_URL", "http://crediya-autenticacion:8081/api/v1/usuarios"
+}
