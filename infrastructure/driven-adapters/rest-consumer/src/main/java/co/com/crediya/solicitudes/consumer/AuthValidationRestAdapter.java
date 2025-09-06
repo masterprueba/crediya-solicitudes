@@ -55,7 +55,7 @@ public class AuthValidationRestAdapter implements AuthValidationRepository {
                     return Mono.error(new DomainException("ERROR_VALIDACION_TOKEN", 
                                                          "Error interno al validar token"));
                 })
-                .onErrorResume(Exception.class, e -> {
+                .onErrorResume(throwable -> !(throwable instanceof DomainException), e -> {
                     log.error("Error inesperado al validar token: {}", e.getMessage(), e);
                     return Mono.error(new DomainException("ERROR_VALIDACION_TOKEN", 
                                                          "Error interno al validar token"));

@@ -1,6 +1,5 @@
 package co.com.crediya.solicitudes.usecase.listarsolicitudes;
 
-import co.com.crediya.solicitudes.model.cliente.ClienteToken;
 import co.com.crediya.solicitudes.model.cliente.Cliente;
 import co.com.crediya.solicitudes.model.cliente.gateways.ClienteRepository;
 import co.com.crediya.solicitudes.model.solicitud.Estado;
@@ -49,14 +48,13 @@ class ListarSolicitudesUseCaseTest {
 
         Mockito.when(solicitudResumenRepository.listarBase(estados, 0, 10, "PERSONAL"))
                 .thenReturn(Flux.just(base));
-        Mockito.when(clienteRepository.obtenerClientePorEmail(any(ClienteToken.class)))
+        Mockito.when(clienteRepository.obtenerClientePorEmail(any(String.class)))
                 .thenReturn(Mono.just(cliente));
         Mockito.when(solicitudResumenRepository.contar(estados, "PERSONAL"))
                 .thenReturn(Mono.just(1L));
 
-        var clienteToken = ClienteToken.builder().email("email@test.com").token("token").build();
 
-        Mono<Pagina<SolicitudResumen>> result = useCase.listarSolicitudes(0, 10, "PERSONAL", clienteToken);
+        Mono<Pagina<SolicitudResumen>> result = useCase.listarSolicitudes(0, 10, "PERSONAL");
 
         StepVerifier.create(result)
                 .expectNextMatches(pagina ->

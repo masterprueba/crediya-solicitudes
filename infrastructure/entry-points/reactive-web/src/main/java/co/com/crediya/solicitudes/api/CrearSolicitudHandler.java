@@ -2,8 +2,8 @@ package co.com.crediya.solicitudes.api;
 
 import java.time.Instant;
 
+import co.com.crediya.solicitudes.api.context.ReactiveAuthenticationContextProvider;
 import co.com.crediya.solicitudes.model.auth.AuthenticatedUser;
-import co.com.crediya.solicitudes.model.cliente.ClienteToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -92,10 +92,10 @@ public class CrearSolicitudHandler  {
       .flatMap(solicitud ->
               req.principal()
                       .map(principal -> (AuthenticatedUser) ((Authentication) principal).getPrincipal())
-                      .flatMap(user -> {
-                          ClienteToken clienteToken = new ClienteToken(user.getUserId(), user.getEmail(), user.getRole(), user.getToken());
-                          return useCase.ejecutar(solicitud, clienteToken);
-                      })
+                      .flatMap(user ->
+                          useCase.ejecutar(solicitud, user.getEmail())
+                                  .contextWrite(ReactiveAuthenticationContextProvider.withAuthentication(user))
+                      )
       )
       .flatMap(sol -> {
         log.info("4. crear respuesta: {}", sol);
