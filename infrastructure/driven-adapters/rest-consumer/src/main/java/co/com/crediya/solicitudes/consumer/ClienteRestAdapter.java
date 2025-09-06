@@ -1,7 +1,7 @@
 package co.com.crediya.solicitudes.consumer;
 
+import co.com.crediya.solicitudes.model.auth.gateways.AuthenticationContextProvider;
 import co.com.crediya.solicitudes.model.cliente.Cliente;
-import co.com.crediya.solicitudes.model.cliente.ClienteToken;
 import co.com.crediya.solicitudes.model.cliente.gateways.ClienteRepository;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.slf4j.Logger;
@@ -18,38 +18,44 @@ import java.util.Map;
 @Service
 public class ClienteRestAdapter implements ClienteRepository {
     private final WebClient authWebClient;
+    private final AuthenticationContextProvider authContextProvider;
 
     private final Logger log = LoggerFactory.getLogger(ClienteRestAdapter.class);
 
-    public ClienteRestAdapter(@Qualifier("authWebClient") WebClient authWebClient) {
+    public ClienteRestAdapter(@Qualifier("authWebClient") WebClient authWebClient,
+                             AuthenticationContextProvider authContextProvider) {
         this.authWebClient = authWebClient;
+        this.authContextProvider = authContextProvider;
     }
 
     @Override
     @CircuitBreaker(name = "clienteByEmail", fallbackMethod = "obtenerClientePorEmailFallback")
-    public Mono<Cliente> obtenerClientePorEmail(ClienteToken clienteToken) {
-        log.info("Consultando cliente por email. email={}", clienteToken.getEmail());
-        return authWebClient
-                .get()
-                .uri("/cliente?email={email}", clienteToken.getEmail())
-                .header("Authorization", "Bearer " + clienteToken.getToken())
-                .retrieve()
-                .bodyToMono(Map.class)
-                .map(data -> new Cliente(
-                        (String) data.get("usuario"),
-                        (String) data.get("email"),
-                        (String) data.get("documento_identidad"),
-                        BigDecimal.valueOf(((Number) data.get("salario_base")).doubleValue())
-                ))
-                .doOnNext(cliente -> log.info("obtenerClientePorEmail respuesta: {}", cliente))
-                .onErrorResume(WebClientResponseException.NotFound.class, e -> {
-                    log.warn("Cliente no encontrado (404) para el email: {}  mensaje: {}", clienteToken.getEmail(),e.getMessage());
-                    return Mono.empty();
-                });
+    public Mono<Cliente> obtenerClientePorEmail(String email) {
+        log.info("Consultando cliente por email. email={}", email);
+        
+        return authContextProvider.getToken()
+                .flatMap(token -> authWebClient
+                        .get()
+                        .uri("/cliente?email={email}", email)
+                        .header("Authorization", "Bearer " + token)
+                        .retrieve()
+                        .bodyToMono(Map.class)
+                        .map(data -> new Cliente(
+                                (String) data.get("usuario"),
+                                (String) data.get("email"),
+                                (String) data.get("documento_identidad"),
+                                BigDecimal.valueOf(((Number) data.get("salario_base")).doubleValue())
+                        ))
+                        .doOnNext(cliente -> log.info("obtenerClientePorEmail respuesta: {}", cliente))
+                        .onErrorResume(WebClientResponseException.NotFound.class, e -> {
+                            log.warn("Cliente no encontrado (404) para el email: {}  mensaje: {}", email, e.getMessage());
+                            return Mono.empty();
+                        })
+                );
     }
 
-    private Mono<Cliente> obtenerClientePorEmailFallback(ClienteToken clienteToken, Throwable ex) {
-        log.warn("Fallback activado para obtenerClientePorEmail. email={}, error={}", clienteToken.getEmail(), ex.getMessage());
+    private Mono<Cliente> obtenerClientePorEmailFallback(String email, Throwable ex) {
+        log.warn("Fallback activado para obtenerClientePorEmail. email={}, error={}", email, ex.getMessage());
         return Mono.empty();
     }
 }

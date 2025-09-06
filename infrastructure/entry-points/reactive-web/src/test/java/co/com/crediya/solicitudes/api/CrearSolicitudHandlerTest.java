@@ -1,7 +1,6 @@
 package co.com.crediya.solicitudes.api;
 
 import co.com.crediya.solicitudes.model.auth.AuthenticatedUser;
-import co.com.crediya.solicitudes.model.cliente.ClienteToken;
 import co.com.crediya.solicitudes.usecase.crearsolicitud.CrearSolicitudUseCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -77,7 +76,7 @@ class CrearSolicitudHandlerTest {
         org.mockito.Mockito.when(uriBuilder.build(solicitud.getId())).thenReturn(location);
 
         // Mock del caso de uso
-        org.mockito.Mockito.when(useCase.ejecutar(org.mockito.ArgumentMatchers.any(co.com.crediya.solicitudes.model.solicitud.Solicitud.class), org.mockito.ArgumentMatchers.any(ClienteToken.class)))
+        org.mockito.Mockito.when(useCase.ejecutar(org.mockito.ArgumentMatchers.any(co.com.crediya.solicitudes.model.solicitud.Solicitud.class), org.mockito.ArgumentMatchers.any(String.class)))
                 .thenReturn(Mono.just(solicitud));
 
         // Act

@@ -62,7 +62,7 @@ class AuthValidationRestAdapterTest {
 
         StepVerifier.create(adapter.validateToken(token))
                 .expectErrorMatches(error -> error instanceof DomainException &&
-                        error.getMessage().equals("token_invalido"))
+                        error.getMessage().equals("Token inválido o expirado"))
                 .verify();
     }
 
