@@ -6,7 +6,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record SQSSenderProperties(
      String region,
      String queueUrl,
-     String endpoint,
-     String accessKey,
-     String secretKey){
+     String endpoint){
 }

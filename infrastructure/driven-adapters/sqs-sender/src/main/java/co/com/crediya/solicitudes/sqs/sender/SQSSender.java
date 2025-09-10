@@ -22,7 +22,6 @@ public class SQSSender implements NotificacionRepository {
         return Mono.fromCallable(() -> buildRequest(message))
                 .flatMap(request -> Mono.fromFuture(client.sendMessage(request)))
                 .doOnNext(response -> log.debug("Message sent {}", response.messageId()))
-                .doOnError(error -> log.error("Error sending message to SQS", error))
                 .map(SendMessageResponse::messageId);
     }
 
