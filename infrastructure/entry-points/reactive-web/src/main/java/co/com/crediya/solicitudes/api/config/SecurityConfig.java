@@ -46,6 +46,7 @@ public class SecurityConfig {
                         .pathMatchers("/v3/api-docs/**").permitAll()
                         .pathMatchers("/swagger-ui.html").permitAll()
                         .pathMatchers("/swagger-ui/**").permitAll()
+                        .pathMatchers(HttpMethod.PUT,"/solicitud/{id}").hasRole("ASESOR")
                         .pathMatchers(HttpMethod.GET,"/solicitud/listar").hasRole("ASESOR")
                         .pathMatchers(HttpMethod.POST,"/solicitud").hasRole("CLIENTE")
                         .anyExchange().denyAll()

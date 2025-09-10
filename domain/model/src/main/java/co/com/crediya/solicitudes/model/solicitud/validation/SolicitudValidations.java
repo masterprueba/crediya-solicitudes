@@ -10,7 +10,7 @@ import reactor.core.publisher.Mono;
 public class SolicitudValidations {
 
     private SolicitudValidations() {
-        throw new IllegalStateException("Validation class");
+        throw new DomainException("Validation class");
     }
 
     public static SolicitudValidation validarMonto() {
