@@ -1,7 +1,6 @@
 package co.com.crediya.solicitudes.sqs.listener.config;
 
 import co.com.crediya.solicitudes.sqs.listener.helper.SQSListener;
-import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import reactor.core.publisher.Mono;

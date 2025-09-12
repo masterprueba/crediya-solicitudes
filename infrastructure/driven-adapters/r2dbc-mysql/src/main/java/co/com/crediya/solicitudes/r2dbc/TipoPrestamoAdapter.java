@@ -9,7 +9,6 @@ import co.com.crediya.solicitudes.model.solicitud.TipoPrestamo;
 import co.com.crediya.solicitudes.model.solicitud.gateways.CatalogoPrestamoRepository;
 import co.com.crediya.solicitudes.r2dbc.entity.TipoPrestamoEntity;
 import co.com.crediya.solicitudes.r2dbc.helper.ReactiveAdapterOperations;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Repository

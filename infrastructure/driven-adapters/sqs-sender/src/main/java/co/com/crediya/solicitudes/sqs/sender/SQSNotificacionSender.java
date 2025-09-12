@@ -69,10 +69,6 @@ public class SQSNotificacionSender extends SQSBaseSender implements Notificacion
         );
     }
 
-    private String toJsonStringOrNull(String value) {
-        return value == null ? "null" : String.format("\"%s\"", value);
-    }
-
     private Object toJsonNumber(Object value) {
         return value == null ? "null" : value;
     }

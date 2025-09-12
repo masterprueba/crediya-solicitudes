@@ -2,11 +2,9 @@ package co.com.crediya.solicitudes.model.solicitud.validation;
 
 import co.com.crediya.solicitudes.model.exceptions.DomainException;
 import co.com.crediya.solicitudes.model.solicitud.Estado;
-import co.com.crediya.solicitudes.model.solicitud.Solicitud;
 import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
-import java.util.stream.Stream;
 
 public class CambiarEstadoSolicitudValidations {
 

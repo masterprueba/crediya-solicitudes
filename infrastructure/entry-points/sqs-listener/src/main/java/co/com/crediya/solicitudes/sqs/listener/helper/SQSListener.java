@@ -47,7 +47,6 @@ public class SQSListener {
                 .flatMap(message -> processor.apply(message)
                         .name("async_operation")
                         .tag("operation", operation)
-                        .metrics()
                         .then(confirm(message)))
                 .onErrorContinue((e, o) -> log.error("Error listening sqs message", e));
     }

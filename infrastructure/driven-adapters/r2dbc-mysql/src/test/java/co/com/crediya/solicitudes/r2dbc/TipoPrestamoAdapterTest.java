@@ -1,6 +1,5 @@
 package co.com.crediya.solicitudes.r2dbc;
 
-import co.com.crediya.solicitudes.model.solicitud.TipoPrestamo;
 import co.com.crediya.solicitudes.r2dbc.entity.TipoPrestamoEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,8 +12,6 @@ import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
 import static org.mockito.Mockito.when;
-
-import java.util.UUID;
 
 @ExtendWith(MockitoExtension.class)
 class TipoPrestamoAdapterTest {

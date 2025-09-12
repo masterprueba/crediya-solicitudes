@@ -45,6 +45,7 @@ public class CambiarEstadoSolicitudUseCase {
                     solicitud.setEstado(Estado.valueOf(nuevoEstado));
                     return solicitudRepository.update(solicitud);
                 })
+                        .filter(solicitud -> solicitud.getEstado() == Estado.APROBADA || solicitud.getEstado() == Estado.RECHAZADA)
                 .flatMap(solicitudGuardada ->
                     notificacionRepository.enviarDecisionSolicitud(solicitudGuardada, decision)
                         .thenReturn(solicitudGuardada)
