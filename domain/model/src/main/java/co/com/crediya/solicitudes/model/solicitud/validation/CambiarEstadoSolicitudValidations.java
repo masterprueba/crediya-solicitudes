@@ -1,7 +1,12 @@
 package co.com.crediya.solicitudes.model.solicitud.validation;
 
 import co.com.crediya.solicitudes.model.exceptions.DomainException;
+import co.com.crediya.solicitudes.model.solicitud.Estado;
+import co.com.crediya.solicitudes.model.solicitud.Solicitud;
 import reactor.core.publisher.Mono;
+
+import java.util.Arrays;
+import java.util.stream.Stream;
 
 public class CambiarEstadoSolicitudValidations {
 
@@ -9,12 +14,14 @@ public class CambiarEstadoSolicitudValidations {
         throw new DomainException("CambiarEstado class");
     }
 
-    public static CambiarEstadoSolicitudValidation validarEstadoAprobadooRechazado() {
+    public static CambiarEstadoSolicitudValidation validarEstado() {
         return (solicitud, nuevoEstado) -> {
-           if( nuevoEstado.equals("APROBADA") || nuevoEstado.equals("RECHAZADA")) {
-               return Mono.just(nuevoEstado);
+            Estado estado  =Arrays.stream(Estado.values()).filter(e -> e.name().equals(nuevoEstado)).findFirst()
+                    .orElse(null);
+            if(estado == null) {
+                return Mono.error(new DomainException("El esttado es inválido"));
             }
-            return Mono.error(new DomainException("estado_invalido"));
+            return Mono.just(estado.name());
         };
     }
 
@@ -31,6 +38,6 @@ public class CambiarEstadoSolicitudValidations {
     }
 
     public static CambiarEstadoSolicitudValidation completa() {
-        return validarEstadoAprobadooRechazado().and(validarYaEstaAprobadaoRechazada());
+        return validarEstado().and(validarYaEstaAprobadaoRechazada());
     }
 }

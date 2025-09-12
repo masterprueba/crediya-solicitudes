@@ -5,6 +5,7 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 
 import co.com.crediya.solicitudes.model.cliente.gateways.ClienteRepository;
+import co.com.crediya.solicitudes.model.solicitud.gateways.CapacidadEndeudamientoRepository;
 import co.com.crediya.solicitudes.model.solicitud.gateways.CatalogoPrestamoRepository;
 import co.com.crediya.solicitudes.model.solicitud.gateways.SolicitudRepository;
 import org.mockito.Mockito;
@@ -20,6 +21,7 @@ class UseCasesConfigTest {
                 .withBean(SolicitudRepository.class, () -> Mockito.mock(SolicitudRepository.class))
                 .withBean(ClienteRepository.class, () -> Mockito.mock(ClienteRepository.class))
                 .withBean(CatalogoPrestamoRepository.class, () -> Mockito.mock(CatalogoPrestamoRepository.class))
+                .withBean(CapacidadEndeudamientoRepository.class, () -> Mockito.mock(CapacidadEndeudamientoRepository.class))
                 .run(context -> {
                     assertThat(context).hasBean("crearSolicitudUseCase");
                 });

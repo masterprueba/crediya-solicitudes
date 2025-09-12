@@ -83,7 +83,8 @@ class SolicitudTest {
         Solicitud solicitud = new Solicitud(
                 id, "test@test.com", "Test User", "123456789",
                 new java.math.BigDecimal("10000"), 12, tipoPrestamoId,
-                "Personal", Estado.PENDIENTE_REVISION, created
+                "Personal", Estado.PENDIENTE_REVISION, created, 15.5, 
+                new java.math.BigDecimal("1000000"), null, null // eventId y prestamosActivos
         );
         assertNotNull(solicitud);
         assertEquals(id, solicitud.getId());

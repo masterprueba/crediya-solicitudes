@@ -8,6 +8,7 @@ public final class EstadoDbMapper {
     public static final int ID_APROBADA = 2;
     public static final int ID_RECHAZADA = 3;
     public static final int ID_REVISION_MANUAL = 4;
+    public static final int ID_EN_VALIDACION_AUTOMATICA = 5;
 
     private EstadoDbMapper() {
         throw new IllegalStateException("Estado Mapper class");
@@ -19,6 +20,7 @@ public final class EstadoDbMapper {
         case APROBADA           -> ID_APROBADA;
         case RECHAZADA          -> ID_RECHAZADA;
         case REVISION_MANUAL    -> ID_REVISION_MANUAL;
+        case EN_VALIDACION_AUTOMATICA -> ID_EN_VALIDACION_AUTOMATICA;
       };
     }
     public static Estado toDomain(int id) {
@@ -27,6 +29,7 @@ public final class EstadoDbMapper {
         case ID_APROBADA  -> Estado.APROBADA;
         case ID_RECHAZADA -> Estado.RECHAZADA;
         case ID_REVISION_MANUAL -> Estado.REVISION_MANUAL;
+        case ID_EN_VALIDACION_AUTOMATICA -> Estado.EN_VALIDACION_AUTOMATICA;
         default -> throw new IllegalArgumentException("estado_id_desconocido:"+id);
       };
     }

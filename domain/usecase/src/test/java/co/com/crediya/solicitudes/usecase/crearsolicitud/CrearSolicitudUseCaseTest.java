@@ -4,6 +4,8 @@ import co.com.crediya.solicitudes.model.cliente.Cliente;
 import co.com.crediya.solicitudes.model.cliente.gateways.ClienteRepository;
 import co.com.crediya.solicitudes.model.solicitud.Estado;
 import co.com.crediya.solicitudes.model.solicitud.Solicitud;
+import co.com.crediya.solicitudes.model.solicitud.TipoPrestamo;
+import co.com.crediya.solicitudes.model.solicitud.gateways.CapacidadEndeudamientoRepository;
 import co.com.crediya.solicitudes.model.solicitud.gateways.CatalogoPrestamoRepository;
 import co.com.crediya.solicitudes.model.solicitud.gateways.SolicitudRepository;
 import co.com.crediya.solicitudes.model.cliente.validation.ClienteValidation;
@@ -34,6 +36,7 @@ class CrearSolicitudUseCaseTest {
     private ClienteRepository clientePort;
     private CatalogoPrestamoRepository catalogoPort;
     private CrearSolicitudUseCase useCase;
+    private CapacidadEndeudamientoRepository capacidadEndeudamientoPort;
 
     private Solicitud solicitud;
 
@@ -42,7 +45,8 @@ class CrearSolicitudUseCaseTest {
         repo = mock(SolicitudRepository.class);
         clientePort = mock(ClienteRepository.class);
         catalogoPort = mock(CatalogoPrestamoRepository.class);
-        useCase = new CrearSolicitudUseCase(repo, clientePort, catalogoPort);
+        capacidadEndeudamientoPort = mock(CapacidadEndeudamientoRepository.class);
+        useCase = new CrearSolicitudUseCase(repo, clientePort, catalogoPort, capacidadEndeudamientoPort);
 
         solicitud = Solicitud.builder()
                 .monto(new BigDecimal("1000.0"))
@@ -89,8 +93,8 @@ class CrearSolicitudUseCaseTest {
             when(clienteValidation.validar(any(String.class))).thenReturn(Mono.just("test@test.com"));
 
             when(clientePort.obtenerClientePorEmail(any(String.class))).thenReturn(Mono.just(Cliente.builder().build()));
-            when(catalogoPort.esTipoValido(anyString())).thenReturn(Mono.just(true));
-            when(catalogoPort.obtenerIdPorNombre(anyString())).thenReturn(Mono.just(tipoPrestamoId));
+
+            when(catalogoPort.obtenerTipoPrestamoPorNombre(anyString())).thenReturn(Mono.just(TipoPrestamo.builder().build()));
             when(repo.save(any(Solicitud.class))).thenReturn(Mono.just(solicitudFinal));
 
             Mono<Solicitud> result = useCase.ejecutar(solicitud, "test@test.com");

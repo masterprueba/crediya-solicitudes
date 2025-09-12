@@ -1,9 +1,10 @@
 package co.com.crediya.solicitudes.model.solicitud.gateways;
 
 import reactor.core.publisher.Mono;
-import java.util.UUID;
+
+
+import co.com.crediya.solicitudes.model.solicitud.TipoPrestamo;
 
 public interface CatalogoPrestamoRepository {
-    Mono<Boolean> esTipoValido(String tipoPrestamo);
-    Mono<UUID> obtenerIdPorNombre(String nombre);
+    Mono<TipoPrestamo> obtenerTipoPrestamoPorNombre(String nombre);
 }

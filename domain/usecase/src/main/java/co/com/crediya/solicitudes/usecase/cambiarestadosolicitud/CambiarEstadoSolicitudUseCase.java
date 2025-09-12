@@ -5,6 +5,7 @@ import co.com.crediya.solicitudes.model.solicitud.Estado;
 import co.com.crediya.solicitudes.model.solicitud.Solicitud;
 import co.com.crediya.solicitudes.model.solicitud.gateways.NotificacionRepository;
 import co.com.crediya.solicitudes.model.solicitud.gateways.SolicitudRepository;
+import co.com.crediya.solicitudes.model.solicitud.DecisionSolicitud;
 import co.com.crediya.solicitudes.model.solicitud.validation.CambiarEstadoSolicitudValidations;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
@@ -27,6 +28,25 @@ public class CambiarEstadoSolicitudUseCase {
                 })
                 .flatMap(solicitudGuardada ->
                     notificacionRepository.enviarDecisionSolicitud(solicitudGuardada)
+                        .thenReturn(solicitudGuardada)
+                );
+    }
+
+    public Mono<Solicitud> cambiarEstado(DecisionSolicitud decision) {
+        String solicitudId = decision.getSolicitudId().toString();
+        String nuevoEstado = decision.getDecision().name();
+        return
+                solicitudRepository.findById(solicitudId)
+                .switchIfEmpty(Mono.error(new DomainException("Solicitud no encontrada")))
+                .flatMap(solicitud -> CambiarEstadoSolicitudValidations.completa()
+                        .validar(solicitud,nuevoEstado)
+                        .thenReturn(solicitud))
+                .flatMap(solicitud -> {
+                    solicitud.setEstado(Estado.valueOf(nuevoEstado));
+                    return solicitudRepository.update(solicitud);
+                })
+                .flatMap(solicitudGuardada ->
+                    notificacionRepository.enviarDecisionSolicitud(solicitudGuardada, decision)
                         .thenReturn(solicitudGuardada)
                 );
     }
