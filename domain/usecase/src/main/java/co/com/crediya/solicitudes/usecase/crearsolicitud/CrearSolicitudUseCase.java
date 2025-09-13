@@ -98,7 +98,7 @@ public class CrearSolicitudUseCase {
                                                     solicitudCompleta.getId(), solicitudCompleta.getEventId()))
                                             .doOnError(error -> log.error("Error al encolar solicitud {} para validación: {}", 
                                                     solicitudCompleta.getId(), error.getMessage()))
-                                            .thenReturn(solicitudCompleta);
+                                            .then(Mono.just(solicitudCompleta));
                                 });
                     }
                     log.info("Solicitud {} no requiere validación automática", solicitudGuardada.getId());

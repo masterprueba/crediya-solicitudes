@@ -19,11 +19,11 @@ public class Solicitud {
     private BigDecimal monto;
     private Integer plazoMeses;
     private UUID tipoPrestamoId;
-    private String tipoPrestamo; // Campo temporal para compatibilidad
+    private String tipoPrestamo;
     private Estado estado;
     private Instant created;
     private Double tasaInteres;
     private BigDecimal salarioBase;
-    private UUID eventId; // Para rastrear cada mensaje en SQS
-    private List<PrestamoActivo> prestamosActivos; // Préstamos aprobados del cliente
+    private UUID eventId;
+    private List<PrestamoActivo> prestamosActivos;
 }
