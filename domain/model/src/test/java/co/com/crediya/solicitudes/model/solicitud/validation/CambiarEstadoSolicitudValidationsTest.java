@@ -19,7 +19,7 @@ class CambiarEstadoSolicitudValidationsTest {
     @Test
     @DisplayName("validarEstadoAprobadooRechazado: acepta APROBADA y RECHAZADA")
     void validarEstadoAprobadooRechazado_valido() {
-        var validator = CambiarEstadoSolicitudValidations.validarEstadoAprobadooRechazado();
+        var validator = CambiarEstadoSolicitudValidations.validarEstado();
 
         StepVerifier.create(validator.validar(null, "APROBADA"))
                 .expectNext("APROBADA")
@@ -33,12 +33,12 @@ class CambiarEstadoSolicitudValidationsTest {
     @Test
     @DisplayName("validarEstadoAprobadooRechazado: rechaza estado inválido")
     void validarEstadoAprobadooRechazado_invalido() {
-        var validator = CambiarEstadoSolicitudValidations.validarEstadoAprobadooRechazado();
+        var validator = CambiarEstadoSolicitudValidations.validarEstado();
 
-        StepVerifier.create(validator.validar(null, "EN_REVISION"))
+        StepVerifier.create(validator.validar(null, "EN_GESTION"))
                 .expectErrorSatisfies(throwable -> {
                     assertInstanceOf(DomainException.class, throwable);
-                    assertEquals("estado_invalido", throwable.getMessage());
+                    assertEquals("El esttado es inválido", throwable.getMessage());
                 })
                 .verify();
     }
@@ -96,10 +96,10 @@ class CambiarEstadoSolicitudValidationsTest {
         Solicitud solicitud = mock(Solicitud.class);
         when(solicitud.getEstado()).thenReturn(Estado.APROBADA);
 
-        StepVerifier.create(validator.validar(solicitud, "PENDIENTE"))
+        StepVerifier.create(validator.validar(solicitud, "EN_GESTION"))
                 .expectErrorSatisfies(throwable -> {
                     assertInstanceOf(DomainException.class, throwable);
-                    assertEquals("estado_invalido", throwable.getMessage());
+                    assertEquals("El esttado es inválido", throwable.getMessage());
                 })
                 .verify();
     }

@@ -2,110 +2,171 @@ package co.com.crediya.solicitudes.usecase.crearsolicitud;
 
 import co.com.crediya.solicitudes.model.cliente.Cliente;
 import co.com.crediya.solicitudes.model.cliente.gateways.ClienteRepository;
-import co.com.crediya.solicitudes.model.solicitud.Estado;
+import co.com.crediya.solicitudes.model.exceptions.DomainException;
+import co.com.crediya.solicitudes.model.solicitud.PrestamoActivo;
 import co.com.crediya.solicitudes.model.solicitud.Solicitud;
+import co.com.crediya.solicitudes.model.solicitud.TipoPrestamo;
+import co.com.crediya.solicitudes.model.solicitud.gateways.CapacidadEndeudamientoRepository;
 import co.com.crediya.solicitudes.model.solicitud.gateways.CatalogoPrestamoRepository;
 import co.com.crediya.solicitudes.model.solicitud.gateways.SolicitudRepository;
-import co.com.crediya.solicitudes.model.cliente.validation.ClienteValidation;
-import co.com.crediya.solicitudes.model.cliente.validation.ClienteValidations;
-import co.com.crediya.solicitudes.model.solicitud.validation.SolicitudValidation;
-import co.com.crediya.solicitudes.model.solicitud.validation.SolicitudValidations;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
+@DisplayName("CrearSolicitudUseCase Test")
 class CrearSolicitudUseCaseTest {
 
-    private SolicitudRepository repo;
-    private ClienteRepository clientePort;
-    private CatalogoPrestamoRepository catalogoPort;
-    private CrearSolicitudUseCase useCase;
+    @Mock
+    private SolicitudRepository solicitudRepository;
+    @Mock
+    private ClienteRepository clienteRepository;
+    @Mock
+    private CatalogoPrestamoRepository catalogoPrestamoRepository;
+    @Mock
+    private CapacidadEndeudamientoRepository capacidadEndeudamientoRepository;
 
-    private Solicitud solicitud;
+    @InjectMocks
+    private CrearSolicitudUseCase crearSolicitudUseCase;
 
     @BeforeEach
     void setUp() {
-        repo = mock(SolicitudRepository.class);
-        clientePort = mock(ClienteRepository.class);
-        catalogoPort = mock(CatalogoPrestamoRepository.class);
-        useCase = new CrearSolicitudUseCase(repo, clientePort, catalogoPort);
-
-        solicitud = Solicitud.builder()
-                .monto(new BigDecimal("1000.0"))
-                .documentoIdentidad("123456789")
-                .email("test@test.com")
-                .nombres("Test User")
-                .estado(Estado.PENDIENTE_REVISION)
-                .tipoPrestamo("PERSONAL")
-                .plazoMeses(12)
-                .build();
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    @DisplayName("Debe ejecutar el caso de uso y retornar la solicitud enriquecida y guardada")
-    void testEjecutar() {
-        Solicitud solicitudValidada = solicitud.toBuilder().build();
-
-        Solicitud solicitudConCliente = solicitudValidada.toBuilder()
+    @DisplayName("Crear solicitud con validación automática - Exitoso")
+    void crearSolicitudConValidacionAutomatica() {
+        Solicitud solicitud = Solicitud.builder()
+                .monto(BigDecimal.valueOf(5000))
+                .plazoMeses(12)
                 .email("test@test.com")
+                .tipoPrestamo("LIBRE_INVERSION")
                 .build();
-        Solicitud solicitudConDatosCliente = solicitudConCliente.toBuilder()
-                .nombres("Test User")
-                .documentoIdentidad("123456789")
+        String email = "test@test.com";
+
+        Cliente cliente = Cliente.builder().email("test@test.com").usuario("Test User").salarioBase(BigDecimal.valueOf(10000)).documentoIdentidad("12345").build();
+        TipoPrestamo tipoPrestamo = TipoPrestamo.builder().nombre("LIBRE_INVERSION").validacionAutomatica(true).tasaInteres(18.5).build();
+        Solicitud savedSolicitud = solicitud.toBuilder().email("test@test.com").build();
+
+        when(clienteRepository.obtenerClientePorEmail(email)).thenReturn(Mono.just(cliente));
+        when(catalogoPrestamoRepository.obtenerTipoPrestamoPorNombre(anyString())).thenReturn(Mono.just(tipoPrestamo));
+        when(solicitudRepository.save(any(Solicitud.class))).thenReturn(Mono.just(savedSolicitud));
+        when(solicitudRepository.findPrestamosActivosByEmail(anyString())).thenReturn(Flux.empty());
+        when(capacidadEndeudamientoRepository.validarCapacidadEndeudamiento(any(Solicitud.class))).thenReturn(Mono.empty());
+
+        StepVerifier.create(crearSolicitudUseCase.ejecutar(solicitud, email))
+                .expectNextMatches(s -> "test@test.com".equals(s.getEmail()))
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Crear solicitud para revisión manual - Exitoso")
+    void crearSolicitudParaRevisionManual() {
+        Solicitud solicitud = Solicitud.builder()
+                .monto(BigDecimal.valueOf(5000))
+                .plazoMeses(12)
+                .email("test@test.com")
+                .tipoPrestamo("LIBRANZA")
                 .build();
-        UUID tipoPrestamoId = UUID.fromString("11111111-1111-1111-1111-111111111111");
-        Solicitud solicitudFinal = solicitudConDatosCliente.toBuilder()
-                .id(UUID.randomUUID())
-                .tipoPrestamoId(tipoPrestamoId)
-                .estado(Estado.PENDIENTE_REVISION)
-                .created(Instant.now())
+        String email = "test@test.com";
+
+        Cliente cliente = Cliente.builder().usuario("Test User").salarioBase(BigDecimal.valueOf(10000)).documentoIdentidad("12345").build();
+        TipoPrestamo tipoPrestamo = TipoPrestamo.builder().nombre("LIBRANZA").validacionAutomatica(false).tasaInteres(18.5).build();
+        Solicitud savedSolicitud = solicitud.toBuilder().email("test@test.com").build();
+
+        when(clienteRepository.obtenerClientePorEmail(anyString())).thenReturn(Mono.just(cliente));
+        when(catalogoPrestamoRepository.obtenerTipoPrestamoPorNombre(anyString())).thenReturn(Mono.just(tipoPrestamo));
+        when(solicitudRepository.save(any(Solicitud.class))).thenReturn(Mono.just(savedSolicitud));
+
+        StepVerifier.create(crearSolicitudUseCase.ejecutar(solicitud, email))
+                .expectNextMatches(s -> "test@test.com".equals(s.getEmail()))
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Crear solicitud - Falla por cliente no encontrado")
+    void crearSolicitudFallaClienteNoEncontrado() {
+        Solicitud solicitud = Solicitud.builder().monto(BigDecimal.valueOf(5000)).plazoMeses(12).tipoPrestamo("LIBRE_INVERSION").build();
+        String email = "test@test.com";
+
+        when(clienteRepository.obtenerClientePorEmail(anyString())).thenReturn(Mono.empty());
+
+        StepVerifier.create(crearSolicitudUseCase.ejecutar(solicitud, email))
+                .expectErrorMatches(throwable -> throwable instanceof DomainException && "cliente_no_autorizado_para_esta_solicitud".equals(throwable.getMessage()))
+                .verify();
+    }
+
+    @Test
+    @DisplayName("Crear solicitud - Falla por tipo de préstamo no encontrado")
+    void crearSolicitudFallaTipoPrestamoNoEncontrado() {
+        Solicitud solicitud = Solicitud.builder().email("test@test.com").monto(BigDecimal.valueOf(5000)).plazoMeses(12).tipoPrestamo("NO_EXISTE").build();
+        String email = "test@test.com";
+
+        Cliente cliente = Cliente.builder().usuario("Test User").salarioBase(BigDecimal.valueOf(10000)).documentoIdentidad("12345").build();
+
+        when(clienteRepository.obtenerClientePorEmail(anyString())).thenReturn(Mono.just(cliente));
+        when(catalogoPrestamoRepository.obtenerTipoPrestamoPorNombre(anyString())).thenReturn(Mono.empty());
+
+        StepVerifier.create(crearSolicitudUseCase.ejecutar(solicitud, email))
+                .expectErrorMatches(throwable -> throwable instanceof DomainException && "tipo de préstamo no encontrado".equals(throwable.getMessage()))
+                .verify();
+    }
+
+    @Test
+    @DisplayName("Crear solicitud - Error al encolar para validación")
+    void crearSolicitudErrorAlEncolar() {
+        Solicitud solicitud = Solicitud.builder().email("test@test.com").monto(BigDecimal.valueOf(5000)).plazoMeses(12).tipoPrestamo("LIBRE_INVERSION").build();
+        String email = "test@test.com";
+
+        Cliente cliente = Cliente.builder().email(email).usuario("Test User").salarioBase(BigDecimal.valueOf(10000)).documentoIdentidad("12345").build();
+        TipoPrestamo tipoPrestamo = TipoPrestamo.builder().nombre("LIBRE_INVERSION").validacionAutomatica(true).tasaInteres(18.5).build();
+        Solicitud savedSolicitud = solicitud.toBuilder()
+                .email("test@test.com")
+                .estado(co.com.crediya.solicitudes.model.solicitud.Estado.EN_VALIDACION_AUTOMATICA)
                 .build();
 
-        // Mock estáticos para las validaciones
-        try (MockedStatic<SolicitudValidations> solicitudValidationsMock = Mockito.mockStatic(SolicitudValidations.class);
-             MockedStatic<ClienteValidations> clienteValidationsMock = Mockito.mockStatic(ClienteValidations.class)) {
+        when(clienteRepository.obtenerClientePorEmail(anyString())).thenReturn(Mono.just(cliente));
+        when(catalogoPrestamoRepository.obtenerTipoPrestamoPorNombre(anyString())).thenReturn(Mono.just(tipoPrestamo));
+        when(solicitudRepository.save(any(Solicitud.class))).thenReturn(Mono.just(savedSolicitud));
+        when(solicitudRepository.findPrestamosActivosByEmail(anyString())).thenReturn(Flux.empty());
+        when(capacidadEndeudamientoRepository.validarCapacidadEndeudamiento(any(Solicitud.class))).thenReturn(Mono.error(new RuntimeException("Error de encolamiento")));
 
-            SolicitudValidation solicitudValidation = mock(SolicitudValidation.class);
-            ClienteValidation clienteValidation = mock(ClienteValidation.class);
+        StepVerifier.create(crearSolicitudUseCase.ejecutar(solicitud, email))
+                .expectErrorMatches(throwable -> throwable instanceof DomainException && "Error interno del sistema al procesar la solicitud".equals(throwable.getMessage()))
+                .verify();
+    }
 
-            solicitudValidationsMock.when(SolicitudValidations::completa).thenReturn(solicitudValidation);
-            when(solicitudValidation.validar(any(Solicitud.class))).thenReturn(Mono.just(solicitudValidada));
+    @Test
+    @DisplayName("Crear solicitud con prestamos activos")
+    void crearSolicitudConPrestamosActivos() {
+        Solicitud solicitud = Solicitud.builder().email("test@test.com").monto(BigDecimal.valueOf(5000)).plazoMeses(12).tipoPrestamo("LIBRE_INVERSION").build();
+        String email = "test@test.com";
+        PrestamoActivo prestamoActivo = PrestamoActivo.builder().build();
 
-            clienteValidationsMock.when(() -> ClienteValidations.completa(any(Solicitud.class))).thenReturn(clienteValidation);
-            when(clienteValidation.validar(any(String.class))).thenReturn(Mono.just("test@test.com"));
+        Cliente cliente = Cliente.builder().usuario("Test User").salarioBase(BigDecimal.valueOf(10000)).documentoIdentidad("12345").build();
+        TipoPrestamo tipoPrestamo = TipoPrestamo.builder().nombre("LIBRE_INVERSION").validacionAutomatica(true).tasaInteres(18.5).build();
+        Solicitud savedSolicitud = solicitud.toBuilder().email("test@test.com").build();
 
-            when(clientePort.obtenerClientePorEmail(any(String.class))).thenReturn(Mono.just(Cliente.builder().build()));
-            when(catalogoPort.esTipoValido(anyString())).thenReturn(Mono.just(true));
-            when(catalogoPort.obtenerIdPorNombre(anyString())).thenReturn(Mono.just(tipoPrestamoId));
-            when(repo.save(any(Solicitud.class))).thenReturn(Mono.just(solicitudFinal));
+        when(clienteRepository.obtenerClientePorEmail(anyString())).thenReturn(Mono.just(cliente));
+        when(catalogoPrestamoRepository.obtenerTipoPrestamoPorNombre(anyString())).thenReturn(Mono.just(tipoPrestamo));
+        when(solicitudRepository.save(any(Solicitud.class))).thenReturn(Mono.just(savedSolicitud));
+        when(solicitudRepository.findPrestamosActivosByEmail(anyString())).thenReturn(Flux.just(prestamoActivo));
+        when(capacidadEndeudamientoRepository.validarCapacidadEndeudamiento(any(Solicitud.class))).thenReturn(Mono.empty());
 
-            Mono<Solicitud> result = useCase.ejecutar(solicitud, "test@test.com");
-
-            StepVerifier.create(result)
-                    .assertNext(solicitudCreada -> {
-                        // Verifica los datos enriquecidos
-                        assert solicitudCreada.getEmail().equals("test@test.com");
-                        assert solicitudCreada.getNombres().equals("Test User");
-                        assert solicitudCreada.getTipoPrestamoId().equals(tipoPrestamoId);
-                        assert solicitudCreada.getEstado() == Estado.PENDIENTE_REVISION;
-                        assert solicitudCreada.getId() != null;
-                        assert solicitudCreada.getCreated() != null;
-                    })
-                    .verifyComplete();
-        }
+        StepVerifier.create(crearSolicitudUseCase.ejecutar(solicitud, email))
+                .expectNextMatches(s -> "test@test.com".equals(s.getEmail()))
+                .verifyComplete();
     }
 }

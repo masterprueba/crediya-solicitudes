@@ -77,4 +77,15 @@ class SolicitudValidationsTest {
                 .expectError(DomainException.class)
                 .verify();
     }
+
+    @Test
+    void constructor_privado_lanzaExcepcion() throws Exception {
+        var constructor = SolicitudValidations.class.getDeclaredConstructor();
+        constructor.setAccessible(true);
+        var ex = org.junit.jupiter.api.Assertions.assertThrows(
+                java.lang.reflect.InvocationTargetException.class,
+                constructor::newInstance
+        );
+        org.junit.jupiter.api.Assertions.assertTrue(ex.getCause() instanceof DomainException);
+    }
 }

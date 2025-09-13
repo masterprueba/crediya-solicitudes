@@ -5,6 +5,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "adapter.sqs")
 public record SQSSenderProperties(
      String region,
-     String queueUrl,
-     String endpoint){
+     String endpoint,
+     QueueConfig notificaciones,
+     QueueConfig capacidadEndeudamiento) {
+     
+     public record QueueConfig(String url) {}
 }

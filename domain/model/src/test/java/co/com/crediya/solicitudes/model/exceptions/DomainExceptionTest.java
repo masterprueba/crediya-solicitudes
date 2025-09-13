@@ -18,4 +18,16 @@ class DomainExceptionTest {
         assertNotNull(exception);
         assertEquals(errorMessage, exception.getMessage());
     }
+
+    @Test
+    @DisplayName("Crear DomainException con codigo y mensaje - Exitoso")
+    void testCrearDomainExceptionConCodigoYMensaje() {
+        String errorCode = "ERROR_CODE";
+        String errorMessage = "Este es un error de dominio con código.";
+        DomainException exception = new DomainException(errorCode, errorMessage);
+
+        assertNotNull(exception);
+        assertEquals(errorMessage, exception.getMessage());
+        assertEquals(errorCode, exception.code());
+    }
 }

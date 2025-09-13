@@ -16,4 +16,8 @@ import lombok.Setter;
 public class TipoPrestamo {
     private UUID id;
     private String nombre;
+    private Double tasaInteres;
+    private Double montoMinimo;
+    private Double montoMaximo;
+    private boolean validacionAutomatica;
 }

@@ -1,6 +1,5 @@
 package co.com.crediya.solicitudes.api;
 
-import co.com.crediya.solicitudes.api.mapper.CambiarEstadoMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.RequestMethod;

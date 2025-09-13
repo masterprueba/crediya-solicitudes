@@ -3,6 +3,11 @@ package co.com.crediya.solicitudes.model.solicitud;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -10,83 +15,51 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 class SolicitudTest {
 
     @Test
-    @DisplayName("Crear Solicitud - Exitoso")
-    void testCrearSolicitudExitoso() {
+    @DisplayName("Probar toBuilder y campos opcionales")
+    void testToBuilderYCamposOpcionales() {
+        UUID id = UUID.randomUUID();
+        UUID tipoPrestamoId = UUID.randomUUID();
+        UUID eventId = UUID.randomUUID();
+        Instant created = Instant.now();
+        PrestamoActivo prestamoActivo = new PrestamoActivo(); // Asegúrate de tener un constructor vacío
+        List<PrestamoActivo> prestamosActivos = List.of(prestamoActivo);
+
         Solicitud solicitud = Solicitud.builder()
-                .id(java.util.UUID.randomUUID())
-                .email("test@test.com")
-                .nombres("Test User")
-                .documentoIdentidad("123456789")
-                .monto(new java.math.BigDecimal("10000"))
-                .plazoMeses(12)
-                .tipoPrestamoId(java.util.UUID.randomUUID())
-                .tipoPrestamo("Personal")
-                .estado(Estado.PENDIENTE_REVISION)
-                .created(java.time.Instant.now())
+                .id(id)
+                .email("test2@test.com")
+                .nombres("Otro User")
+                .documentoIdentidad("987654321")
+                .monto(new BigDecimal("5000"))
+                .plazoMeses(6)
+                .tipoPrestamoId(tipoPrestamoId)
+                .tipoPrestamo("Vehículo")
+                .estado(Estado.APROBADA)
+                .created(created)
+                .tasaInteres(10.5)
+                .salarioBase(new BigDecimal("2000000"))
+                .eventId(eventId)
+                .prestamosActivos(prestamosActivos)
                 .build();
-        assertNotNull(solicitud);
-        assertEquals("test@test.com", solicitud.getEmail());
-        assertEquals("Test User", solicitud.getNombres());
-        assertEquals("123456789", solicitud.getDocumentoIdentidad());
-        assertEquals(new java.math.BigDecimal("10000"), solicitud.getMonto());
-        assertEquals(12, solicitud.getPlazoMeses());
-        assertEquals("Personal", solicitud.getTipoPrestamo());
-        assertEquals(Estado.PENDIENTE_REVISION, solicitud.getEstado());
+
+        Solicitud copia = solicitud.toBuilder().email("nuevo@test.com").build();
+
+        assertEquals("test2@test.com", solicitud.getEmail());
+        assertEquals("nuevo@test.com", copia.getEmail());
+        assertEquals("Otro User", copia.getNombres());
+        assertEquals("987654321", copia.getDocumentoIdentidad());
+        assertEquals(new BigDecimal("5000"), copia.getMonto());
+        assertEquals(6, copia.getPlazoMeses());
+        assertEquals(tipoPrestamoId, copia.getTipoPrestamoId());
+        assertEquals("Vehículo", copia.getTipoPrestamo());
+        assertEquals(Estado.APROBADA, copia.getEstado());
+        assertEquals(created, copia.getCreated());
+        assertEquals(eventId, solicitud.getEventId());
+        assertEquals(prestamosActivos, solicitud.getPrestamosActivos());
+        assertEquals(10.5, solicitud.getTasaInteres());
+        assertEquals(new BigDecimal("2000000"), solicitud.getSalarioBase());
+        assertNotNull(solicitud.getId());
         assertNotNull(solicitud.getCreated());
-
     }
 
-    @Test
-    @DisplayName("Crear Getters y Setters - Exitoso")
-    void testGettersAndSetters() {
-        Solicitud solicitud = new Solicitud();
-        java.util.UUID id = java.util.UUID.randomUUID();
-        java.util.UUID tipoPrestamoId = java.util.UUID.randomUUID();
-        java.time.Instant created = java.time.Instant.now();
-        solicitud.setId(id);
-        solicitud.setEmail("test@test.com");
-        solicitud.setNombres("Test User");
-        solicitud.setDocumentoIdentidad("123456789");
-        solicitud.setMonto(new java.math.BigDecimal("10000"));
-        solicitud.setPlazoMeses(12);
-        solicitud.setTipoPrestamoId(tipoPrestamoId);
-        solicitud.setTipoPrestamo("Personal");
-        solicitud.setEstado(Estado.PENDIENTE_REVISION);
-        solicitud.setCreated(created);
 
-        assertEquals(id, solicitud.getId());
-        assertEquals("test@test.com", solicitud.getEmail());
-        assertEquals("Test User", solicitud.getNombres());
-        assertEquals("123456789", solicitud.getDocumentoIdentidad());
-        assertEquals(new java.math.BigDecimal("10000"), solicitud.getMonto());
-        assertEquals(12, solicitud.getPlazoMeses());
-        assertEquals(tipoPrestamoId, solicitud.getTipoPrestamoId());
-        assertEquals("Personal", solicitud.getTipoPrestamo());
-        assertEquals(Estado.PENDIENTE_REVISION, solicitud.getEstado());
-        assertEquals(created, solicitud.getCreated());
-
-    }
-
-    @Test
-    @DisplayName("Crear Solicitud sin parametros - Exitoso")
-    void testCrearSolicitudSinParametros() {
-        Solicitud solicitud = new Solicitud();
-        assertNotNull(solicitud);
-    }
-
-    @Test
-    @DisplayName("Crear Solicitud con todos los argumentos - Exitoso")
-    void testCrearSolicitudConTodosLosArgumentos() {
-        java.util.UUID id = java.util.UUID.randomUUID();
-        java.util.UUID tipoPrestamoId = java.util.UUID.randomUUID();
-        java.time.Instant created = java.time.Instant.now();
-        Solicitud solicitud = new Solicitud(
-                id, "test@test.com", "Test User", "123456789",
-                new java.math.BigDecimal("10000"), 12, tipoPrestamoId,
-                "Personal", Estado.PENDIENTE_REVISION, created
-        );
-        assertNotNull(solicitud);
-        assertEquals(id, solicitud.getId());
-        assertEquals("test@test.com", solicitud.getEmail());
-    }
 }

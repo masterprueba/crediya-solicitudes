@@ -15,7 +15,7 @@ public class SolicitudResumen {
     private BigDecimal monto;
     private Integer plazoMeses;
     private String tipoPrestamo;
-    private BigDecimal tasaInteres;                   // % anual del tipo
+    private BigDecimal tasaInteres;
     private Estado estado;
     private String nombreCompleto;
     private String email;

@@ -16,7 +16,7 @@ public class SolicitudMapper {
         }
         
         SolicitudEntity entity = new SolicitudEntity();
-        entity.setId(solicitud.getId() != null ? solicitud.getId().toString() : null);
+        entity.setId(solicitud.getId() != null ? solicitud.getId().toString() : UUID.randomUUID().toString());
         entity.setEmail(solicitud.getEmail());
         entity.setMonto(solicitud.getMonto());
         entity.setPlazoMeses(solicitud.getPlazoMeses());
