@@ -39,11 +39,11 @@ adapter:
     timeout: 5000
     url: "${SERVICE_AUTH_URL}"
   sqs:
-    region: "us-east-2"
+    region: "${SQS_S_N_REGION}"
     notificaciones:
-      url: "https://sqs.us-east-2.amazonaws.com/294568841222/solicitud-aprobada-rechazada"
+      url: "${SQS_NOTIFICACION}"
     capacidad-endeudamiento:
-      url: "https://sqs.us-east-2.amazonaws.com/294568841222/CapacidadEndeudamientoRequest"
+      url: "${SQS_CAPACIDAD_REQUEST}"
 resilience4j:
   circuitbreaker:
     instances:
@@ -58,8 +58,8 @@ resilience4j:
         waitDurationInOpenState: "10s"
 entrypoint:
   sqs:
-    region: "us-east-2"
-    queueUrl: "https://sqs.us-east-2.amazonaws.com/294568841222/CapacidadEndeudamientoResponse.fifo"
+    region: "${SQS_S_C_REGION}"
+    queueUrl: "${SQS_CAPACIDAD_RESPONSE}"
     waitTimeSeconds: 20
     maxNumberOfMessages: 10
     visibilityTimeoutSeconds: 10
