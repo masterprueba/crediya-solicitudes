@@ -35,13 +35,13 @@ class SQSNotificacionSenderTest {
     @Mock
     private SQSSenderProperties.QueueConfig notificacionesConfig;
 
-    private SQSNotificacionSender sender;
+    private SQSNotificacionManualSender sender;
 
     @BeforeEach
     void setUp() {
         when(properties.notificaciones()).thenReturn(notificacionesConfig);
         when(notificacionesConfig.url()).thenReturn("https://sqs.us-east-2.amazonaws.com/123456789/test-queue");
-        sender = new SQSNotificacionSender(sqsAsyncClient, properties);
+        sender = new SQSNotificacionManualSender(sqsAsyncClient, properties);
     }
 
     @Test
@@ -57,7 +57,7 @@ class SQSNotificacionSenderTest {
                 .thenReturn(CompletableFuture.completedFuture(response));
 
         // When & Then
-        StepVerifier.create(sender.enviarDecisionSolicitud(solicitud))
+        StepVerifier.create(sender.enviarCorreoSolicitud(solicitud))
                 .verifyComplete();
     }
 
@@ -72,7 +72,7 @@ class SQSNotificacionSenderTest {
                 .thenReturn(CompletableFuture.failedFuture(error));
 
         // When & Then
-        StepVerifier.create(sender.enviarDecisionSolicitud(solicitud))
+        StepVerifier.create(sender.enviarCorreoSolicitud(solicitud))
                 .expectError(RuntimeException.class)
                 .verify();
     }

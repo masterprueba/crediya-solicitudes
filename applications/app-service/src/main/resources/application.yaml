@@ -44,6 +44,8 @@ adapter:
       url: "${SQS_NOTIFICACION}"
     capacidad-endeudamiento:
       url: "${SQS_CAPACIDAD_REQUEST}"
+    reporteCambiosEstado:
+      url: "${SQS_REPORTE_APROBADA}"
 resilience4j:
   circuitbreaker:
     instances:

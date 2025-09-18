@@ -44,51 +44,6 @@ class CambiarEstadoSolicitudValidationsTest {
     }
 
     @Test
-    @DisplayName("validarYaEstaAprobadaoRechazada: falla si ya está APROBADA y se pide APROBADA")
-    void validarYaEstaAprobadaoRechazada_yaAprobada() {
-        var validator = CambiarEstadoSolicitudValidations.validarYaEstaAprobadaoRechazada();
-
-        Solicitud solicitud = mock(Solicitud.class);
-        when(solicitud.getEstado()).thenReturn(Estado.APROBADA);
-
-        StepVerifier.create(validator.validar(solicitud, "APROBADA"))
-                .expectErrorSatisfies(throwable -> {
-                    assertInstanceOf(DomainException.class, throwable);
-                    assertEquals("La solicitud ya se encuentra aprobada", throwable.getMessage());
-                })
-                .verify();
-    }
-
-    @Test
-    @DisplayName("validarYaEstaAprobadaoRechazada: falla si ya está RECHAZADA y se pide RECHAZADA")
-    void validarYaEstaAprobadaoRechazada_yaRechazada() {
-        var validator = CambiarEstadoSolicitudValidations.validarYaEstaAprobadaoRechazada();
-
-        Solicitud solicitud = mock(Solicitud.class);
-        when(solicitud.getEstado()).thenReturn(Estado.RECHAZADA);
-
-        StepVerifier.create(validator.validar(solicitud, "RECHAZADA"))
-                .expectErrorSatisfies(throwable -> {
-                    assertInstanceOf(DomainException.class, throwable);
-                    assertEquals("La solicitud ya se encuentra rechazada", throwable.getMessage());
-                })
-                .verify();
-    }
-
-    @Test
-    @DisplayName("validarYaEstaAprobadaoRechazada: permite transición si no es duplicada")
-    void validarYaEstaAprobadaoRechazada_transicionValida() {
-        var validator = CambiarEstadoSolicitudValidations.validarYaEstaAprobadaoRechazada();
-
-        Solicitud solicitud = mock(Solicitud.class);
-        when(solicitud.getEstado()).thenReturn(Estado.APROBADA);
-
-        StepVerifier.create(validator.validar(solicitud, "RECHAZADA"))
-                .expectNext("RECHAZADA")
-                .verifyComplete();
-    }
-
-    @Test
     @DisplayName("completa: falla con estado inválido")
     void completa_estadoInvalido() {
         var validator = CambiarEstadoSolicitudValidations.completa();

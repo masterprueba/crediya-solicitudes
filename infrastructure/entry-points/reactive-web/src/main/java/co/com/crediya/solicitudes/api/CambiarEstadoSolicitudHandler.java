@@ -3,6 +3,8 @@ package co.com.crediya.solicitudes.api;
 import co.com.crediya.solicitudes.api.dto.CambiarEstadoRequest;
 import co.com.crediya.solicitudes.api.dto.CambiarEstadoResponse;
 import co.com.crediya.solicitudes.api.mapper.CambiarEstadoMapper;
+import co.com.crediya.solicitudes.model.solicitud.DecisionSolicitud;
+import co.com.crediya.solicitudes.model.solicitud.Estado;
 import co.com.crediya.solicitudes.usecase.cambiarestadosolicitud.CambiarEstadoSolicitudUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -17,16 +19,19 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 
 @Component
 @RequiredArgsConstructor
 @Tag(name = "Solicitud", description = "Operaciones relacionadas con las solicitudes de crédito")
 public class CambiarEstadoSolicitudHandler {
 
+    private final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CambiarEstadoSolicitudHandler.class);
 
     private final CambiarEstadoSolicitudUseCase cambiarEstadoSolicitudUseCase;
     private final CambiarEstadoMapper cambiarEstadoMapper;
-    private final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CambiarEstadoSolicitudHandler.class);
+
 
     @Operation(
             summary = "Cambiar el estado de una solicitud de crédito",
@@ -98,12 +103,15 @@ public class CambiarEstadoSolicitudHandler {
     public Mono<ServerResponse> cambiarEstado(ServerRequest request) {
         String solicitudId = request.pathVariable("id");
         return request.bodyToMono(CambiarEstadoRequest.class)
-                        .doOnNext(dto -> log.info("Cambiar estado de solicitud {}", solicitudId))
-                        .flatMap(dto ->
-                        cambiarEstadoSolicitudUseCase.cambiarEstado(solicitudId, dto.estado())
-                                // Mapear de solicitud a CambiarEstadoResponse con la clase CambiarEstadoMapper
-                                .map(cambiarEstadoMapper::toResponse)
-                                .flatMap(solicitud -> ServerResponse.ok().bodyValue(solicitud))
-                        );
+                .doOnNext(dto -> log.info("Cambiar estado de solicitud {}", solicitudId))
+                .flatMap(dto -> {
+                    DecisionSolicitud decisionSolicitud = DecisionSolicitud.builder()
+                            .decision(Estado.valueOf(dto.estado()))
+                            .solicitudId(UUID.fromString(solicitudId))
+                            .build();
+                    return cambiarEstadoSolicitudUseCase.cambiarEstadoReporte(decisionSolicitud, "MANUAL")
+                            .map(cambiarEstadoMapper::toResponse)
+                            .flatMap(solicitud -> ServerResponse.ok().bodyValue(solicitud));
+                });
     }
 }
