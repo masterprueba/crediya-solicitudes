@@ -32,7 +32,7 @@ class TipoPrestamoTest {
         String nombre = "Hipotecario";
 
         // Act
-        TipoPrestamo tipoPrestamo = new TipoPrestamo(id, nombre);
+        TipoPrestamo tipoPrestamo = new TipoPrestamo(id, nombre, 0.0, 0.0, 0.0, false);
 
         // Assert
         assertEquals(id, tipoPrestamo.getId());

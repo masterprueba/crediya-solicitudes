@@ -13,4 +13,7 @@ public class TipoPrestamoEntity {
     @Column("id_tipo_prestamo") private String id;
     @Column("nombre")               private String nombre;
     @Column("tasa_interes")         private Double tasaInteres;
+    @Column("monto_minimo")         private Double montoMinimo;
+    @Column("monto_maximo")         private Double montoMaximo;
+    @Column("validacion_automatica") private Boolean validacionAutomatica;
 }

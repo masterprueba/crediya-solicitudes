@@ -97,10 +97,10 @@ public class CrearSolicitudHandler  {
                                   .contextWrite(ReactiveAuthenticationContextProvider.withAuthentication(user))
                       )
       )
-      .flatMap(sol -> {
-        log.info("4. crear respuesta: {}", sol);
-        var location = req.uriBuilder().path("/api/v1/solicitud/{id}").build(sol.getId());
-        return ServerResponse.created(location).bodyValue(sol);
+      .flatMap(solicitudCreada -> {
+        log.info("4. crear respuesta: {}", solicitudCreada);
+        var location = req.uriBuilder().path("/api/v1/solicitud/{id}").build(solicitudCreada.getId());
+        return ServerResponse.created(location).bodyValue(solicitudCreada);
       });
   }
 

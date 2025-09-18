@@ -9,6 +9,7 @@ import co.com.crediya.solicitudes.model.cliente.gateways.ClienteRepository;
 import co.com.crediya.solicitudes.model.solicitud.gateways.CatalogoPrestamoRepository;
 import co.com.crediya.solicitudes.model.solicitud.gateways.SolicitudRepository;
 import co.com.crediya.solicitudes.usecase.crearsolicitud.CrearSolicitudUseCase;
+import co.com.crediya.solicitudes.model.solicitud.gateways.CapacidadEndeudamientoRepository;
 
 @Configuration
 @ComponentScan(basePackages = "co.com.crediya.solicitudes.usecase",
@@ -20,7 +21,7 @@ import co.com.crediya.solicitudes.usecase.crearsolicitud.CrearSolicitudUseCase;
 public class UseCasesConfig {
 
     @Bean
-    public CrearSolicitudUseCase crearSolicitudUseCase(SolicitudRepository solicitudRepository, ClienteRepository clienteRepository, CatalogoPrestamoRepository catalogoPrestamoRepository) {
-        return new CrearSolicitudUseCase(solicitudRepository, clienteRepository, catalogoPrestamoRepository);
+    public CrearSolicitudUseCase crearSolicitudUseCase(SolicitudRepository solicitudRepository, ClienteRepository clienteRepository, CatalogoPrestamoRepository catalogoPrestamoRepository, CapacidadEndeudamientoRepository capacidadEndeudamientoRepository) {
+        return new CrearSolicitudUseCase(solicitudRepository, clienteRepository, catalogoPrestamoRepository, capacidadEndeudamientoRepository);
     }
 }

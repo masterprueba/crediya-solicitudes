@@ -9,7 +9,6 @@ import co.com.crediya.solicitudes.model.solicitud.TipoPrestamo;
 import co.com.crediya.solicitudes.model.solicitud.gateways.CatalogoPrestamoRepository;
 import co.com.crediya.solicitudes.r2dbc.entity.TipoPrestamoEntity;
 import co.com.crediya.solicitudes.r2dbc.helper.ReactiveAdapterOperations;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Repository
@@ -25,18 +24,18 @@ public class TipoPrestamoAdapter extends ReactiveAdapterOperations<
     }
 
     @Override
-    public Mono<Boolean> esTipoValido(String tipoPrestamo) {
-        Flux<TipoPrestamoEntity> tipoPrestamoEntity = this.repository.findAll();
-        return tipoPrestamoEntity.filter(tp -> tp.getNombre().equals(tipoPrestamo))
-                .hasElements();
-    }
-
-    @Override
-    public Mono<UUID> obtenerIdPorNombre(String nombre) {
+    public Mono<TipoPrestamo> obtenerTipoPrestamoPorNombre(String nombre) {
         return this.repository.findAll()
                 .filter(tp -> tp.getNombre().equals(nombre))
                 .next()
-                .map(tp -> UUID.fromString(tp.getId()));
+                .map(tp -> TipoPrestamo.builder()
+                        .id(UUID.fromString(tp.getId()))
+                        .nombre(tp.getNombre())
+                        .tasaInteres(tp.getTasaInteres())
+                        .montoMinimo(tp.getMontoMinimo())
+                        .montoMaximo(tp.getMontoMaximo())
+                        .validacionAutomatica(tp.getValidacionAutomatica())
+                        .build());
     }
 
 }

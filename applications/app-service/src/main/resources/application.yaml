@@ -2,10 +2,10 @@ server:
   port: 8080
   error:
     include-exception: true
-    include-message: always
+    include-message: "always"
 spring:
   webflux:
-    base-path: /api/v1
+    base-path: "/api/v1"
   application:
     name: "solicitudes"
   devtools:
@@ -38,6 +38,14 @@ adapter:
   auth-service:
     timeout: 5000
     url: "${SERVICE_AUTH_URL}"
+  sqs:
+    region: "${SQS_S_N_REGION}"
+    notificaciones:
+      url: "${SQS_NOTIFICACION}"
+    capacidad-endeudamiento:
+      url: "${SQS_CAPACIDAD_REQUEST}"
+    reporteCambiosEstado:
+      url: "${SQS_REPORTE_APROBADA}"
 resilience4j:
   circuitbreaker:
     instances:
@@ -50,3 +58,11 @@ resilience4j:
         slidingWindowSize: 10
         minimumNumberOfCalls: 10
         waitDurationInOpenState: "10s"
+entrypoint:
+  sqs:
+    region: "${SQS_S_C_REGION}"
+    queueUrl: "${SQS_CAPACIDAD_RESPONSE}"
+    waitTimeSeconds: 20
+    maxNumberOfMessages: 10
+    visibilityTimeoutSeconds: 10
+    numberOfThreads: 1
