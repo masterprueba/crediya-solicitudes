@@ -23,19 +23,7 @@ public class CambiarEstadoSolicitudValidations {
         };
     }
 
-    public static CambiarEstadoSolicitudValidation validarYaEstaAprobadaoRechazada() {
-        return (solicitud, nuevoEstado) -> {
-           if(nuevoEstado.equals("APROBADA") && solicitud.getEstado().name().equals("APROBADA")) {
-               return Mono.error(new DomainException("La solicitud ya se encuentra aprobada"));
-           }
-           if(nuevoEstado.equals("RECHAZADA") && solicitud.getEstado().name().equals("RECHAZADA")) {
-               return Mono.error(new DomainException("La solicitud ya se encuentra rechazada"));
-           }
-            return Mono.just(nuevoEstado);
-        };
-    }
-
     public static CambiarEstadoSolicitudValidation completa() {
-        return validarEstado().and(validarYaEstaAprobadaoRechazada());
+        return validarEstado();
     }
 }

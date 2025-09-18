@@ -45,7 +45,7 @@ public class SQSProcessor implements Function<Message, Mono<Void>> {
                 .decidedAt(dto.decidedAt())
                 .build();
 
-        return cambiarEstadoSolicitudUseCase.cambiarEstado(decision)
+        return cambiarEstadoSolicitudUseCase.cambiarEstadoReporte( decision,"AUTOMATICA")
                 .doOnSuccess(ignored -> log.info("✅ Estado de solicitud cambiado exitosamente - SolicitudId: {}", dto.solicitudId()))
                 .doOnError(e -> log.error("❌ Error cambiando estado de solicitud - SolicitudId: {}, Error: {}", dto.solicitudId(), e.getMessage(), e))
                 .then();

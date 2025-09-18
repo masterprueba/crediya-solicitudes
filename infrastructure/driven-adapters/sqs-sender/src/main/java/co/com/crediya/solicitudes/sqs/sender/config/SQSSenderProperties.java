@@ -7,6 +7,7 @@ public record SQSSenderProperties(
      String region,
      String endpoint,
      QueueConfig notificaciones,
+     QueueConfig reporteCambiosEstado,
      QueueConfig capacidadEndeudamiento) {
      
      public record QueueConfig(String url) {}

@@ -4,7 +4,8 @@ import co.com.crediya.solicitudes.model.exceptions.DomainException;
 import co.com.crediya.solicitudes.model.solicitud.DecisionSolicitud;
 import co.com.crediya.solicitudes.model.solicitud.Estado;
 import co.com.crediya.solicitudes.model.solicitud.Solicitud;
-import co.com.crediya.solicitudes.model.solicitud.gateways.NotificacionRepository;
+import co.com.crediya.solicitudes.model.solicitud.gateways.NotificacionManualRepository;
+import co.com.crediya.solicitudes.model.solicitud.gateways.ReporteCambioEstadoRepository;
 import co.com.crediya.solicitudes.model.solicitud.gateways.SolicitudRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,7 +27,10 @@ class CambiarEstadoSolicitudUseCaseTest {
     @Mock
     private SolicitudRepository solicitudRepository;
     @Mock
-    private NotificacionRepository notificacionRepository;
+    private NotificacionManualRepository notificacionRepository;
+
+    @Mock
+    private ReporteCambioEstadoRepository reporteCambioEstadoRepository;
 
     @InjectMocks
     private CambiarEstadoSolicitudUseCase cambiarEstadoSolicitudUseCase;
@@ -45,9 +49,9 @@ class CambiarEstadoSolicitudUseCaseTest {
 
         when(solicitudRepository.findById(solicitudId.toString())).thenReturn(Mono.just(solicitud));
         when(solicitudRepository.update(any(Solicitud.class))).thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
-        when(notificacionRepository.enviarDecisionSolicitud(any(Solicitud.class))).thenReturn(Mono.empty());
+        when(notificacionRepository.enviarCorreoSolicitud(any(Solicitud.class))).thenReturn(Mono.empty());
 
-        StepVerifier.create(cambiarEstadoSolicitudUseCase.cambiarEstado(solicitudId.toString(), nuevoEstado))
+        StepVerifier.create(cambiarEstadoSolicitudUseCase.cambiarEstadoReporte(any(DecisionSolicitud.class), "AUTOMATICA"))
                 .expectNextMatches(s -> s.getEstado() == Estado.APROBADA)
                 .verifyComplete();
     }
@@ -60,7 +64,7 @@ class CambiarEstadoSolicitudUseCaseTest {
 
         when(solicitudRepository.findById(solicitudId)).thenReturn(Mono.empty());
 
-        StepVerifier.create(cambiarEstadoSolicitudUseCase.cambiarEstado(solicitudId, nuevoEstado))
+        StepVerifier.create(cambiarEstadoSolicitudUseCase.cambiarEstadoReporte(any(DecisionSolicitud.class), "MANUAL"))
                 .expectErrorMatches(throwable -> throwable instanceof DomainException && "Solicitud no encontrada".equals(throwable.getMessage()))
                 .verify();
     }
@@ -77,9 +81,9 @@ class CambiarEstadoSolicitudUseCaseTest {
 
         when(solicitudRepository.findById(solicitudId.toString())).thenReturn(Mono.just(solicitud));
         when(solicitudRepository.update(any(Solicitud.class))).thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
-        when(notificacionRepository.enviarDecisionSolicitud(any(Solicitud.class), any(DecisionSolicitud.class))).thenReturn(Mono.empty());
+        when(reporteCambioEstadoRepository.enviarReporteSolicitud(any(DecisionSolicitud.class),any(Solicitud.class))).thenReturn(Mono.empty());
 
-        StepVerifier.create(cambiarEstadoSolicitudUseCase.cambiarEstado(decision))
+        StepVerifier.create(cambiarEstadoSolicitudUseCase.cambiarEstadoReporte(decision,"AUTOMATICA"))
                 .expectNextMatches(s -> s.getEstado() == Estado.APROBADA)
                 .verifyComplete();
     }
@@ -95,7 +99,7 @@ class CambiarEstadoSolicitudUseCaseTest {
 
         when(solicitudRepository.findById(solicitudId.toString())).thenReturn(Mono.empty());
 
-        StepVerifier.create(cambiarEstadoSolicitudUseCase.cambiarEstado(decision))
+        StepVerifier.create(cambiarEstadoSolicitudUseCase.cambiarEstadoReporte(decision,"AUTOMATICA"))
                 .expectErrorMatches(throwable -> throwable instanceof DomainException && "Solicitud no encontrada".equals(throwable.getMessage()))
                 .verify();
     }
@@ -117,7 +121,7 @@ class CambiarEstadoSolicitudUseCaseTest {
             return Mono.just(s);
         });
 
-        StepVerifier.create(cambiarEstadoSolicitudUseCase.cambiarEstado(decision))
+        StepVerifier.create(cambiarEstadoSolicitudUseCase.cambiarEstadoReporte(decision,"AUTOMATICA"))
                 .verifyComplete();
     }
 }
