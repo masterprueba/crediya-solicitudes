@@ -4,6 +4,7 @@ import co.com.crediya.solicitudes.model.exceptions.DomainException;
 import co.com.crediya.solicitudes.model.solicitud.DecisionSolicitud;
 import co.com.crediya.solicitudes.model.solicitud.Estado;
 import co.com.crediya.solicitudes.model.solicitud.Solicitud;
+import co.com.crediya.solicitudes.model.solicitud.gateways.NotificacionAutomaticaRepository;
 import co.com.crediya.solicitudes.model.solicitud.gateways.NotificacionManualRepository;
 import co.com.crediya.solicitudes.model.solicitud.gateways.ReporteCambioEstadoRepository;
 import co.com.crediya.solicitudes.model.solicitud.gateways.SolicitudRepository;
@@ -30,6 +31,9 @@ class CambiarEstadoSolicitudUseCaseTest {
     private NotificacionManualRepository notificacionRepository;
 
     @Mock
+    private NotificacionAutomaticaRepository notificacionAutomaticaRepository;
+
+    @Mock
     private ReporteCambioEstadoRepository reporteCambioEstadoRepository;
 
     @InjectMocks
@@ -44,14 +48,18 @@ class CambiarEstadoSolicitudUseCaseTest {
     @DisplayName("Cambiar estado de solicitud - Exitoso")
     void cambiarEstadoSolicitudExitoso() {
         UUID solicitudId = UUID.randomUUID();
-        String nuevoEstado = "APROBADA";
         Solicitud solicitud = Solicitud.builder().id(solicitudId).estado(Estado.EN_VALIDACION_AUTOMATICA).build();
+        DecisionSolicitud decision = DecisionSolicitud.builder()
+                .solicitudId(solicitudId)
+                .decision(Estado.APROBADA)
+                .build();
 
         when(solicitudRepository.findById(solicitudId.toString())).thenReturn(Mono.just(solicitud));
         when(solicitudRepository.update(any(Solicitud.class))).thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
-        when(notificacionRepository.enviarCorreoSolicitud(any(Solicitud.class))).thenReturn(Mono.empty());
+        when(notificacionAutomaticaRepository.enviarCorreoSolicitud(any(DecisionSolicitud.class), any(Solicitud.class))).thenReturn(Mono.empty());
+        when(reporteCambioEstadoRepository.enviarReporteSolicitud(any(DecisionSolicitud.class), any(Solicitud.class))).thenReturn(Mono.empty());
 
-        StepVerifier.create(cambiarEstadoSolicitudUseCase.cambiarEstadoReporte(any(DecisionSolicitud.class), "AUTOMATICA"))
+        StepVerifier.create(cambiarEstadoSolicitudUseCase.cambiarEstadoReporte(decision, "AUTOMATICA"))
                 .expectNextMatches(s -> s.getEstado() == Estado.APROBADA)
                 .verifyComplete();
     }
@@ -59,12 +67,15 @@ class CambiarEstadoSolicitudUseCaseTest {
     @Test
     @DisplayName("Cambiar estado de solicitud - Falla por solicitud no encontrada")
     void cambiarEstadoSolicitudNoEncontrada() {
-        String solicitudId = "solicitud-inexistente";
-        String nuevoEstado = "APROBADA";
+        UUID solicitudId = UUID.randomUUID(); // Genera un UUID válido
+        DecisionSolicitud decision = DecisionSolicitud.builder()
+                .solicitudId(solicitudId)
+                .decision(Estado.APROBADA)
+                .build();
 
-        when(solicitudRepository.findById(solicitudId)).thenReturn(Mono.empty());
+        when(solicitudRepository.findById(solicitudId.toString())).thenReturn(Mono.empty());
 
-        StepVerifier.create(cambiarEstadoSolicitudUseCase.cambiarEstadoReporte(any(DecisionSolicitud.class), "MANUAL"))
+        StepVerifier.create(cambiarEstadoSolicitudUseCase.cambiarEstadoReporte(decision, "MANUAL"))
                 .expectErrorMatches(throwable -> throwable instanceof DomainException && "Solicitud no encontrada".equals(throwable.getMessage()))
                 .verify();
     }
@@ -81,9 +92,10 @@ class CambiarEstadoSolicitudUseCaseTest {
 
         when(solicitudRepository.findById(solicitudId.toString())).thenReturn(Mono.just(solicitud));
         when(solicitudRepository.update(any(Solicitud.class))).thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
-        when(reporteCambioEstadoRepository.enviarReporteSolicitud(any(DecisionSolicitud.class),any(Solicitud.class))).thenReturn(Mono.empty());
+        when(reporteCambioEstadoRepository.enviarReporteSolicitud(any(DecisionSolicitud.class), any(Solicitud.class))).thenReturn(Mono.empty());
+        when(notificacionAutomaticaRepository.enviarCorreoSolicitud(any(DecisionSolicitud.class), any(Solicitud.class))).thenReturn(Mono.empty());
 
-        StepVerifier.create(cambiarEstadoSolicitudUseCase.cambiarEstadoReporte(decision,"AUTOMATICA"))
+        StepVerifier.create(cambiarEstadoSolicitudUseCase.cambiarEstadoReporte(decision, "AUTOMATICA"))
                 .expectNextMatches(s -> s.getEstado() == Estado.APROBADA)
                 .verifyComplete();
     }

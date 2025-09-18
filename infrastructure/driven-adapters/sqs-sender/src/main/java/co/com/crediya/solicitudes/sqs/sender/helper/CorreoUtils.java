@@ -6,8 +6,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-import reactor.util.Logger;
-import reactor.util.Loggers;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -15,7 +13,9 @@ import java.util.Map;
 
 public class CorreoUtils {
 
-    private static final Logger log = Loggers.getLogger(CorreoUtils.class);
+    private CorreoUtils() {
+        // Constructor vacío
+    }
 
     public static String construirCuerpoManual(Solicitud solicitud) {
         return String.format(
@@ -39,7 +39,6 @@ public class CorreoUtils {
 
     public static Mono<String> construirCuerpoAutomaticoAprobadoReactivo(DecisionSolicitud desicion, BigDecimal montoSolicitado) {
         return Mono.fromCallable(() -> {
-            log.info("Plan de pagos {}", desicion.getPlanPago());
             String encabezado = String.format(
                     "<h2>Resultado de tu evaluación de crédito</h2>" +
                             "<p><strong>Hola </strong></p>" +
@@ -68,7 +67,7 @@ public class CorreoUtils {
                 for (Map<String, Object> cuota : cuotas) {
                     filasTabla.append(String.format(
                             "<tr><td>%d</td><td>%.2f</td><td>%.2f</td><td>%.2f</td><td>%.2f</td></tr>",
-                            cuota.get("numero"),
+                            ((Number) cuota.get("numero")).intValue(),
                             ((Number) cuota.get("cuota")).doubleValue(),
                             ((Number) cuota.get("interes")).doubleValue(),
                             ((Number) cuota.get("capital")).doubleValue(),
@@ -95,10 +94,9 @@ public class CorreoUtils {
                         "<p style=\"color:#6b7280;font-size:12px\">Este mensaje fue generado automáticamente. No respondas a este correo.</p>";
 
             } catch (Exception e) {
-                log.error("Error al procesar el plan de pagos: {}", e.getMessage(), e);
                 return encabezado + "<p>Error al generar el plan de pagos.</p>";
             }
-        }).subscribeOn(Schedulers.boundedElastic()); // Ejecuta en un hilo no bloqueante
+        }).subscribeOn(Schedulers.boundedElastic());
     }
 
     public static Mono<String> construirCuerpoAutomaticoRechazadaReactivo(DecisionSolicitud desicion) {

@@ -36,10 +36,6 @@ public class SQSNotificacionManualSender extends SQSBaseSender implements Notifi
         return send(mensaje, properties.notificaciones().url())
                 .doOnSuccess(messageId -> log.info("Notificación enviada para la solicitud {}: {}", solicitud.getId(), messageId))
                 .doOnError(error -> log.error("Error al enviar notificación para solicitud {}: {}", solicitud.getId(), error.getMessage()))
-                .onErrorResume(error -> {
-                    log.warn("Recuperando de error: {}", error.getMessage());
-                    return Mono.empty();
-                })
                 .then();
     }
 
