@@ -4,8 +4,10 @@ server:
     include-exception: true
     include-message: "always"
 spring:
+  main:
+    web-application-type: "reactive"
   webflux:
-    base-path: "/api/v1"
+    base-path: "/sol/api/v1"
   application:
     name: "solicitudes"
   devtools:
@@ -16,10 +18,6 @@ spring:
       path: "/h2"
   profiles:
     include: null
-  r2dbc:
-    url: "${SPRING_R2DBC_URL}"
-    username: "${SPRING_R2DBC_USERNAME}"
-    password: "${SPRING_R2DBC_PASSWORD}"
 management:
   endpoints:
     web:
@@ -66,3 +64,6 @@ entrypoint:
     maxNumberOfMessages: 10
     visibilityTimeoutSeconds: 10
     numberOfThreads: 1
+aws:
+  region: us-east-2
+  rds: crediya/rds
