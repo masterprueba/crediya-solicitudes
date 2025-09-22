@@ -36,12 +36,12 @@ public class MicrometerMetricPublisher implements MetricPublisher {
 
     @Override
     public void close() {
-        service.shutdown();
+        // vacio
     }
 
     private List<Tag> buildTags(MetricCollection metricCollection) {
         return metricCollection.stream()
-                .filter(recordMicro -> recordMicro.value() instanceof String || recordMicro.value() instanceof Boolean)
+                .filter(recordMetric -> recordMetric.value() instanceof String || recordMetric.value() instanceof Boolean)
                 .map(recordFilter -> Tag.of(recordFilter.metric().name(), recordFilter.value().toString()))
                 .toList();
     }
